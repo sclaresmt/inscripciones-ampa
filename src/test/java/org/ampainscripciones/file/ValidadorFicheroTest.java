@@ -9,6 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -75,6 +77,67 @@ class ValidadorFicheroTest {
         File file = new File("A non existing file");
 
         assertThrows(IOException.class, () -> this.validadorFichero.extractPaymentsData(file));
+    }
+
+    @Test
+    public void returnRowsWithDoubts() {
+        List<String> paymentData = buildPaymentData();
+        Map<Integer, String> inscriptionData = buildInscriptionData();
+
+        Map<Integer, String> result = this.validadorFichero.returnRowsWithDoubts(inscriptionData, paymentData);
+
+        assertEquals(4, result.size());
+        assertTrue(result.containsKey(1));
+        assertEquals(result.get(1), "El email de inscripción 'pepitopalotes@gmail.com' está repetido");
+        assertTrue(result.containsKey(2));
+        assertEquals(result.get(2), "El email de inscripción 'pepitopalotes@gmail.com' está repetido");
+        assertTrue(result.containsKey(4));
+        assertEquals(result.get(4), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes35@gmail.com' y el del pago es 'pepitopalotes35@gml.com'");
+        assertTrue(result.containsKey(5));
+        assertEquals(result.get(5), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes36@gmail.com' y el de pago es 'pepitopalotes36@hotmail.com'");
+    }
+
+    @Test
+    public void returnPayedRows() {
+        List<String> paymentData = buildPaymentData();
+        Map<Integer, String> inscriptionData = buildInscriptionData();
+
+        List<Integer> result = this.validadorFichero.returnPayedRows(inscriptionData, paymentData);
+
+        assertEquals(3, result.size());
+        assertTrue(result.contains(6));
+        assertTrue(result.contains(5));
+        assertTrue(result.contains(9));
+    }
+
+    private List<String> buildPaymentData() {
+        List<String> payementData = new ArrayList<>();
+        payementData.add("XXXXXXXX-pepitopalotes@gmail.com");
+        payementData.add("XXXXXXXX-PAULA APELLIDO APELLIDO2");
+        payementData.add("CCCXXXXXXXXXXXXXXXXXXXX");
+        payementData.add("YYYYYYYY-LINA APELLIDO APELLIDO");
+        payementData.add("ZZZZZZZZ-LAURA LAURA LAURA");
+        payementData.add("AAAAAAAA-INMACULADA INMA INMA");
+        payementData.add("XXXXXXXX-pepitopalotes34@gmail.com");
+        payementData.add("XXXXXXXX-pepitopalotes35@gml.com");
+        payementData.add("XXXXXXXX-lamarequeva@gmail.com");
+        payementData.add("XXXXXXXX-pepitopalotes36@hotmail.com");
+        return payementData;
+    }
+
+    private Map<Integer, String> buildInscriptionData() {
+        Map<Integer, String> inscriptionData = new HashMap<>();
+        inscriptionData.put(1, "pepitopalotes@gmail.com");
+        inscriptionData.put(2, "pepitopalotes@gmail.com");
+        inscriptionData.put(3, "pepitopalotes34@gmail.com");
+        inscriptionData.put(4, "pepitopalotes35@gmail.com");
+        inscriptionData.put(5, "pepitopalotes36@gmail.com");
+        inscriptionData.put(6, "pepitopalotes37@gmail.com");
+        inscriptionData.put(7, "pepitopalotes38@gmail.com");
+        inscriptionData.put(8, "lafigatatia@gmail.com");
+        inscriptionData.put(9, "lamarequeva@gmail.com");
+        inscriptionData.put(10, "latiatamare@gmail.com");
+        return inscriptionData;
     }
 
 }

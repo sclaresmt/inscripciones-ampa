@@ -21,7 +21,7 @@ public class ValidadorFichero {
             throw new IOException(String.format("File %s does not exist!", file.getAbsolutePath()));
         }
 
-        Map<Integer, String> emailValuesByRowIndex = new LinkedHashMap<>();
+        Map<Integer, String> emailValuesByRowIndex = new HashMap<>();
         try (Workbook wb = WorkbookFactory.create(file)) {
 
             Sheet sheet = wb.getSheetAt(0);
@@ -51,6 +51,23 @@ public class ValidadorFichero {
             }
         }
         return paymentDescription;
+    }
+
+    public List<Integer> returnPayedRows(Map<Integer, String> inscriptionData, List<String> paymentData) {
+        return null;
+    }
+
+    public Map<Integer, String> returnRowsWithDoubts(Map<Integer, String> inscriptionData, List<String> paymentData) {
+        Map<Integer, String> rowsWithDoubts =  new HashMap<>();
+        inscriptionData.entrySet().forEach(entry -> {
+            for (Map.Entry<Integer, String> recursiveEntry: inscriptionData.entrySet()) {
+                if (recursiveEntry.getValue().equals(entry.getValue()) && !recursiveEntry.getKey().equals(entry.getKey())) {
+                    rowsWithDoubts.put(entry.getKey(), String.format("El email de inscripción '%s' está repetido", entry.getValue()));
+                    break;
+                }
+            }
+        });
+        return rowsWithDoubts;
     }
 
 }
