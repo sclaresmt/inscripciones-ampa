@@ -1,19 +1,13 @@
 package org.ampainscripciones.file;
 
-import org.ampainscripciones.model.InscriptionDTO;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public class ValidadorFichero {
+public class InscriptionsValidator {
 
     protected Map<Integer, String> extractEmailData(File file) throws IOException {
 
@@ -59,11 +53,32 @@ public class ValidadorFichero {
 
     public Map<Integer, String> returnRowsWithDoubts(Map<Integer, String> inscriptionData, List<String> paymentData) {
         Map<Integer, String> rowsWithDoubts =  new HashMap<>();
-        inscriptionData.entrySet().forEach(entry -> {
-            for (Map.Entry<Integer, String> recursiveEntry: inscriptionData.entrySet()) {
-                if (recursiveEntry.getValue().equals(entry.getValue()) && !recursiveEntry.getKey().equals(entry.getKey())) {
-                    rowsWithDoubts.put(entry.getKey(), String.format("El email de inscripción '%s' está repetido", entry.getValue()));
+        inscriptionData.forEach((key, value) -> {
+            boolean isRepeated = false;
+            for (Map.Entry<Integer, String> entry : inscriptionData.entrySet()) {
+                if (value.equals(entry.getValue()) && !key.equals(entry.getKey())) {
+                    rowsWithDoubts.put(entry.getKey(), String.format("El email de inscripción '%s' está repetido",
+                            entry.getValue()));
+                    isRepeated = true;
                     break;
+                }
+            }
+            if (!isRepeated) {
+                for (String paymentConcept : paymentData) {
+                    String conceptEmail = paymentConcept;
+                    if (paymentConcept.contains("-")) {
+                        conceptEmail =StringUtils.substringAfterLast(paymentConcept, "-");
+                    }
+                    String emailWithoutDominion = conceptEmail;
+                    if (conceptEmail.contains("@")) {
+                        emailWithoutDominion = StringUtils.substringBeforeLast(conceptEmail, "@");
+                    }
+                    if (StringUtils.isNotBlank(emailWithoutDominion) && StringUtils.substringBefore(value, "@")
+                            .equals(emailWithoutDominion) && !value.equals(conceptEmail)) {
+                        rowsWithDoubts.put(key, String.format("No hay coincidencia exacta en el email: el de " +
+                                "inscripción es '%s' y el del pago es '%s'", value, conceptEmail));
+                        break;
+                    }
                 }
             }
         });

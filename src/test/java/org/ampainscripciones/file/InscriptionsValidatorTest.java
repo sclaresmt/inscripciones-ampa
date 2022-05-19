@@ -17,7 +17,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-class ValidadorFicheroTest {
+class InscriptionsValidatorTest {
 
     private static final String INSCRIPTIONS_TEST_FILE = "./src/test/resources/inscriptions_test.xlsx";
 
@@ -25,13 +25,13 @@ class ValidadorFicheroTest {
 
     @Spy
     @InjectMocks
-    private ValidadorFichero validadorFichero;
+    private InscriptionsValidator inscriptionsValidator;
 
     @Test
     public void extractEmailData() throws IOException, InvalidFormatException {
         File file = new File(INSCRIPTIONS_TEST_FILE);
 
-        Map<Integer, String> data = this.validadorFichero.extractEmailData(file);
+        Map<Integer, String> data = this.inscriptionsValidator.extractEmailData(file);
 
         assertEquals(10, data.size());
         assertEquals("pepitopalotes@gmail.com", data.get(1));
@@ -50,14 +50,14 @@ class ValidadorFicheroTest {
     public void extractEmailDataThrowsIOExceptionWhenFileDoesNotExist() {
         File file = new File("A non existing file");
 
-        assertThrows(IOException.class, () -> this.validadorFichero.extractEmailData(file));
+        assertThrows(IOException.class, () -> this.inscriptionsValidator.extractEmailData(file));
     }
 
     @Test
     public void extractPaymentsData() throws IOException, InvalidFormatException {
         File file = new File(PAYMENTS_TEST_FILE);
 
-        List<String> data = this.validadorFichero.extractPaymentsData(file);
+        List<String> data = this.inscriptionsValidator.extractPaymentsData(file);
 
         assertEquals(10, data.size());
         assertEquals("XXXXXXXX-pepitopalotes@gmail.com", data.get(0));
@@ -76,7 +76,7 @@ class ValidadorFicheroTest {
     public void extractPaymentsDataThrowsIOExceptionWhenFileDoesNotExist() {
         File file = new File("A non existing file");
 
-        assertThrows(IOException.class, () -> this.validadorFichero.extractPaymentsData(file));
+        assertThrows(IOException.class, () -> this.inscriptionsValidator.extractPaymentsData(file));
     }
 
     @Test
@@ -84,7 +84,7 @@ class ValidadorFicheroTest {
         List<String> paymentData = buildPaymentData();
         Map<Integer, String> inscriptionData = buildInscriptionData();
 
-        Map<Integer, String> result = this.validadorFichero.returnRowsWithDoubts(inscriptionData, paymentData);
+        Map<Integer, String> result = this.inscriptionsValidator.returnRowsWithDoubts(inscriptionData, paymentData);
 
         assertEquals(4, result.size());
         assertTrue(result.containsKey(1));
@@ -94,7 +94,7 @@ class ValidadorFicheroTest {
         assertTrue(result.containsKey(4));
         assertEquals(result.get(4), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes35@gmail.com' y el del pago es 'pepitopalotes35@gml.com'");
         assertTrue(result.containsKey(5));
-        assertEquals(result.get(5), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes36@gmail.com' y el de pago es 'pepitopalotes36@hotmail.com'");
+        assertEquals(result.get(5), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes36@gmail.com' y el del pago es 'pepitopalotes36@hotmail.com'");
     }
 
     @Test
@@ -102,7 +102,7 @@ class ValidadorFicheroTest {
         List<String> paymentData = buildPaymentData();
         Map<Integer, String> inscriptionData = buildInscriptionData();
 
-        List<Integer> result = this.validadorFichero.returnPayedRows(inscriptionData, paymentData);
+        List<Integer> result = this.inscriptionsValidator.returnPayedRows(inscriptionData, paymentData);
 
         assertEquals(3, result.size());
         assertTrue(result.contains(6));
@@ -119,7 +119,7 @@ class ValidadorFicheroTest {
         payementData.add("ZZZZZZZZ-LAURA LAURA LAURA");
         payementData.add("AAAAAAAA-INMACULADA INMA INMA");
         payementData.add("XXXXXXXX-pepitopalotes34@gmail.com");
-        payementData.add("XXXXXXXX-pepitopalotes35@gml.com");
+        payementData.add("pepitopalotes35@gml.com");
         payementData.add("XXXXXXXX-lamarequeva@gmail.com");
         payementData.add("XXXXXXXX-pepitopalotes36@hotmail.com");
         return payementData;
