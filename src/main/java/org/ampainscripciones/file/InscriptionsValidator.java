@@ -2,9 +2,14 @@ package org.ampainscripciones.file;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.FileStore;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class InscriptionsValidator {
@@ -48,7 +53,13 @@ public class InscriptionsValidator {
     }
 
     public List<Integer> returnPayedRows(Map<Integer, String> inscriptionData, List<String> paymentData) {
-        return null;
+        List<Integer> payedRows = new ArrayList<>();
+        inscriptionData.entrySet().forEach(entry -> {
+            if (paymentData.stream().anyMatch(data -> data.contains(entry.getValue()))) {
+                payedRows.add(entry.getKey());
+            }
+        });
+        return payedRows;
     }
 
     public Map<Integer, String> returnRowsWithDoubts(Map<Integer, String> inscriptionData, List<String> paymentData) {
@@ -85,4 +96,49 @@ public class InscriptionsValidator {
         return rowsWithDoubts;
     }
 
+    public File validateAndCreateValidatedFile() throws IOException {
+        File inscriptionsFile = this.getInscriptionFile();
+        File paymentsFile = this.getPaymentsFile();
+        Map<Integer, String> inscriptionData = this.extractEmailData(inscriptionsFile);
+        List<String> paymentsData = this.extractPaymentsData(paymentsFile);
+        List<Integer> payedRows = this.returnPayedRows(inscriptionData, paymentsData);
+        Map<Integer, String> rowsWithDoubts = this.returnRowsWithDoubts(inscriptionData, paymentsData);
+        payedRows.stream().dropWhile(integer -> rowsWithDoubts.containsKey(integer));
+
+        try (Workbook wb = WorkbookFactory.create(inscriptionsFile)) {
+            Sheet sheet = wb.getSheetAt(0);
+            int paymentInfoCellNumber = sheet.getRow(2).getLastCellNum() + 1;
+            Cell cell = sheet.getRow(2).createCell(paymentInfoCellNumber);
+                for (Iterator<Row> rowIterator = sheet.rowIterator(); rowIterator.hasNext();) {
+                    Row row = rowIterator.next();
+                    if (payedRows.contains(row.getRowNum())) {
+                        row.getCell(paymentInfoCellNumber).setCellValue(Payed.SÍ.name());
+                    } else if (rowsWithDoubts.containsKey(row.getRowNum())) {
+                        row.getCell(paymentInfoCellNumber).setCellValue(Payed.DUDA.name());
+                    } else {
+                        row.getCell(paymentInfoCellNumber).setCellValue(Payed.NO.name());
+                    }
+                }
+
+            SheetConditionalFormatting sheetConditionalFormatting = sheet.getSheetConditionalFormatting();
+            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.SÍ + "\"")
+                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.GREEN.getIndex());
+            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.NO + "\"")
+                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.RED.getIndex());
+            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.DUDA + "\"")
+                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.BLUE.getIndex());
+            FileOutputStream fileOutputStream = new FileOutputStream("./new-file.xlsx");
+            wb.write(fileOutputStream);
+            fileOutputStream.close();
+        }
+        return new File("./new-file.xlsx");
+    }
+
+    protected File getInscriptionFile() throws IOException {
+        return new File("./inscripciones");
+    }
+
+    protected File getPaymentsFile() {
+        return new File("./pagos");
+    }
 }

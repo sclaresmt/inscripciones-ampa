@@ -1,6 +1,11 @@
 package org.ampainscripciones.file;
 
+import org.apache.poi.hssf.record.FormulaRecord;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Color;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.doReturn;
 
 @ExtendWith(MockitoExtension.class)
 class InscriptionsValidatorTest {
@@ -26,6 +32,23 @@ class InscriptionsValidatorTest {
     @Spy
     @InjectMocks
     private InscriptionsValidator inscriptionsValidator;
+
+    @Test
+    public void validateAndCreateValidatedFile() throws IOException {
+        doReturn(new File(INSCRIPTIONS_TEST_FILE)).when(this.inscriptionsValidator).getInscriptionFile();
+        doReturn(new File(PAYMENTS_TEST_FILE)).when(this.inscriptionsValidator).getPaymentsFile();
+
+        File validatedFile = this.inscriptionsValidator.validateAndCreateValidatedFile();
+
+        try (Workbook wb = WorkbookFactory.create(validatedFile)) {
+            Sheet sheet = wb.getSheetAt(0);
+            assertEquals(3, sheet.getSheetConditionalFormatting().getNumConditionalFormattings());
+            assertEquals(1, sheet.getRow(2).getRowStyle().getFillBackgroundColor());
+            assertEquals(1, sheet.getRow(4).getRowStyle().getFillBackgroundColor());
+            assertEquals(1, sheet.getRow(7).getRowStyle().getFillBackgroundColor());
+            assertEquals(new FormulaRecord().getCachedErrorValue(), sheet.getSheetConditionalFormatting().getNumConditionalFormattings());
+        }
+    }
 
     @Test
     public void extractEmailData() throws IOException, InvalidFormatException {
@@ -104,9 +127,10 @@ class InscriptionsValidatorTest {
 
         List<Integer> result = this.inscriptionsValidator.returnPayedRows(inscriptionData, paymentData);
 
-        assertEquals(3, result.size());
-        assertTrue(result.contains(6));
-        assertTrue(result.contains(5));
+        assertEquals(4, result.size());
+        assertTrue(result.contains(1));
+        assertTrue(result.contains(2));
+        assertTrue(result.contains(3));
         assertTrue(result.contains(9));
     }
 
