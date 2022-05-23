@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,9 @@ class InscriptionsValidatorTest {
 
         File validatedFile = this.inscriptionsValidator.validateAndCreateValidatedFile();
 
+        assertTrue(validatedFile.exists());
+        File newFile = new File("./src/test/resources/result-file.xlsx");
+        Files.copy(validatedFile.toPath(), newFile.toPath());
         try (Workbook wb = WorkbookFactory.create(validatedFile)) {
             Sheet sheet = wb.getSheetAt(0);
             assertEquals(3, sheet.getSheetConditionalFormatting().getNumConditionalFormattings());

@@ -11,6 +11,7 @@ import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class InscriptionsValidator {
 
@@ -103,22 +104,22 @@ public class InscriptionsValidator {
         List<String> paymentsData = this.extractPaymentsData(paymentsFile);
         List<Integer> payedRows = this.returnPayedRows(inscriptionData, paymentsData);
         Map<Integer, String> rowsWithDoubts = this.returnRowsWithDoubts(inscriptionData, paymentsData);
-        payedRows.stream().dropWhile(integer -> rowsWithDoubts.containsKey(integer));
+        payedRows = payedRows.stream().dropWhile(rowsWithDoubts::containsKey).collect(Collectors.toList());
 
         try (Workbook wb = WorkbookFactory.create(inscriptionsFile)) {
             Sheet sheet = wb.getSheetAt(0);
-            int paymentInfoCellNumber = sheet.getRow(2).getLastCellNum() + 1;
-            Cell cell = sheet.getRow(2).createCell(paymentInfoCellNumber);
-                for (Iterator<Row> rowIterator = sheet.rowIterator(); rowIterator.hasNext();) {
-                    Row row = rowIterator.next();
-                    if (payedRows.contains(row.getRowNum())) {
-                        row.getCell(paymentInfoCellNumber).setCellValue(Payed.SÍ.name());
-                    } else if (rowsWithDoubts.containsKey(row.getRowNum())) {
-                        row.getCell(paymentInfoCellNumber).setCellValue(Payed.DUDA.name());
-                    } else {
-                        row.getCell(paymentInfoCellNumber).setCellValue(Payed.NO.name());
-                    }
+            short paymentInfoCellNumber = sheet.getRow(2).getLastCellNum();
+            for (Iterator<Row> rowIterator = sheet.rowIterator(); rowIterator.hasNext();) {
+                Row row = rowIterator.next();
+                Cell cell = row.createCell(paymentInfoCellNumber);
+                if (payedRows.contains(row.getRowNum())) {
+                    cell.setCellValue(Payed.SÍ.name());
+                } else if (rowsWithDoubts.containsKey(row.getRowNum())) {
+                    cell.setCellValue(Payed.DUDA.name());
+                } else {
+                    cell.setCellValue(Payed.NO.name());
                 }
+            }
 
             SheetConditionalFormatting sheetConditionalFormatting = sheet.getSheetConditionalFormatting();
             sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.SÍ + "\"")
