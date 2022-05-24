@@ -38,6 +38,7 @@ class InscriptionsValidatorTest {
     public void validateAndCreateValidatedFile() throws IOException {
         doReturn(new File(INSCRIPTIONS_TEST_FILE)).when(this.inscriptionsValidator).getInscriptionFile();
         doReturn(new File(PAYMENTS_TEST_FILE)).when(this.inscriptionsValidator).getPaymentsFile();
+        doReturn("./src/test/resources/").when(this.inscriptionsValidator).getResultFilePath();
 
         File validatedFile = this.inscriptionsValidator.validateAndCreateValidatedFile();
 
@@ -55,7 +56,7 @@ class InscriptionsValidatorTest {
     }
 
     @Test
-    public void extractEmailData() throws IOException, InvalidFormatException {
+    public void extractEmailData() throws IOException {
         File file = new File(INSCRIPTIONS_TEST_FILE);
 
         Map<Integer, String> data = this.inscriptionsValidator.extractEmailData(file);

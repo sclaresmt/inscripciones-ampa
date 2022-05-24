@@ -98,13 +98,14 @@ public class InscriptionsValidator {
     }
 
     public File validateAndCreateValidatedFile() throws IOException {
-        File inscriptionsFile = this.getInscriptionFile();
-        File paymentsFile = this.getPaymentsFile();
-        Map<Integer, String> inscriptionData = this.extractEmailData(inscriptionsFile);
-        List<String> paymentsData = this.extractPaymentsData(paymentsFile);
-        List<Integer> payedRows = this.returnPayedRows(inscriptionData, paymentsData);
-        Map<Integer, String> rowsWithDoubts = this.returnRowsWithDoubts(inscriptionData, paymentsData);
-        payedRows = payedRows.stream().dropWhile(rowsWithDoubts::containsKey).collect(Collectors.toList());
+        final File inscriptionsFile = this.getInscriptionFile();
+        final File paymentsFile = this.getPaymentsFile();
+        final Map<Integer, String> inscriptionData = this.extractEmailData(inscriptionsFile);
+        final List<String> paymentsData = this.extractPaymentsData(paymentsFile);
+        final Map<Integer, String> rowsWithDoubts = this.returnRowsWithDoubts(inscriptionData, paymentsData);
+        final List<Integer> payedRows = this.returnPayedRows(inscriptionData, paymentsData).stream()
+                .dropWhile(rowsWithDoubts::containsKey).toList();
+        final File resultFile = new File(this.getResultFilePath() + "result-file.xlsx");
 
         try (Workbook wb = WorkbookFactory.create(inscriptionsFile)) {
             Sheet sheet = wb.getSheetAt(0);
@@ -128,11 +129,11 @@ public class InscriptionsValidator {
                     .createPatternFormatting().setFillBackgroundColor(IndexedColors.RED.getIndex());
             sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.DUDA + "\"")
                     .createPatternFormatting().setFillBackgroundColor(IndexedColors.BLUE.getIndex());
-            FileOutputStream fileOutputStream = new FileOutputStream("./new-file.xlsx");
+            FileOutputStream fileOutputStream = new FileOutputStream(resultFile);
             wb.write(fileOutputStream);
             fileOutputStream.close();
         }
-        return new File("./new-file.xlsx");
+        return resultFile;
     }
 
     protected File getInscriptionFile() throws IOException {
@@ -141,5 +142,9 @@ public class InscriptionsValidator {
 
     protected File getPaymentsFile() {
         return new File("./pagos");
+    }
+
+    protected String getResultFilePath() {
+        return "./";
     }
 }
