@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -98,16 +99,19 @@ public class InscriptionsValidator {
     }
 
     public File validateAndCreateValidatedFile() throws IOException {
-        final File inscriptionsFile = this.getInscriptionFile();
+        final File resultFile = new File(this.getResultFilePath() + "result-file.xlsx");
+        if (resultFile.exists()) {
+            resultFile.delete();
+        }
+        Files.copy(this.getInscriptionFile().toPath(), resultFile.toPath());
         final File paymentsFile = this.getPaymentsFile();
-        final Map<Integer, String> inscriptionData = this.extractEmailData(inscriptionsFile);
+        final Map<Integer, String> inscriptionData = this.extractEmailData(resultFile);
         final List<String> paymentsData = this.extractPaymentsData(paymentsFile);
         final Map<Integer, String> rowsWithDoubts = this.returnRowsWithDoubts(inscriptionData, paymentsData);
         final List<Integer> payedRows = this.returnPayedRows(inscriptionData, paymentsData).stream()
                 .dropWhile(rowsWithDoubts::containsKey).toList();
-        final File resultFile = new File(this.getResultFilePath() + "result-file.xlsx");
 
-        try (Workbook wb = WorkbookFactory.create(inscriptionsFile)) {
+        try (Workbook wb = WorkbookFactory.create(resultFile)) {
             Sheet sheet = wb.getSheetAt(0);
             short paymentInfoCellNumber = sheet.getRow(2).getLastCellNum();
             for (Iterator<Row> rowIterator = sheet.rowIterator(); rowIterator.hasNext();) {
@@ -129,9 +133,14 @@ public class InscriptionsValidator {
                     .createPatternFormatting().setFillBackgroundColor(IndexedColors.RED.getIndex());
             sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.DUDA + "\"")
                     .createPatternFormatting().setFillBackgroundColor(IndexedColors.BLUE.getIndex());
-            FileOutputStream fileOutputStream = new FileOutputStream(resultFile);
-            wb.write(fileOutputStream);
-            fileOutputStream.close();
+
+            // Dummy path to avoid bug: https://stackoverflow.com/a/52389913
+            final String dummyPath = resultFile + ".new";
+            try (FileOutputStream fileOut = new FileOutputStream(dummyPath)) {
+                wb.write(fileOut);
+            }
+            Files.delete(resultFile.toPath());
+            Files.move(Paths.get(dummyPath), resultFile.toPath());
         }
         return resultFile;
     }
