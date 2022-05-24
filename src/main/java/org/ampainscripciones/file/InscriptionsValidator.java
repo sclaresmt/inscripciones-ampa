@@ -162,14 +162,19 @@ public class InscriptionsValidator {
     private ConditionalFormattingRule createFormattingRuleForFormula(final String formula, final short colourIndex, SheetConditionalFormatting sheetConditionalFormatting) {
         ConditionalFormattingRule rule = sheetConditionalFormatting.createConditionalFormattingRule(formula);
         PatternFormatting patternFormatting = rule.createPatternFormatting();
+
 //        patternFormatting.setFillBackgroundColor(colourIndex);
+//        patternFormatting.setFillPattern(FillPatternType.SOLID_FOREGROUND.getCode());
+
+        patternFormatting.setFillBackgroundColor(colourIndex);
+        patternFormatting.setFillPattern(FillPatternType.BRICKS.getCode());
 
 //        patternFormatting.setFillForegroundColor(colourIndex);
 //        patternFormatting.setFillPattern(FillPatternType.SOLID_FOREGROUND.getCode());
 
-        patternFormatting.setFillBackgroundColor(IndexedColors.BLACK.index);
-        patternFormatting.setFillPattern(FillPatternType.BIG_SPOTS.getCode());
-        patternFormatting.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+//        patternFormatting.setFillBackgroundColor(IndexedColors.BLACK.index);
+//        patternFormatting.setFillPattern(FillPatternType.BIG_SPOTS.getCode());
+//        patternFormatting.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
 
         return rule;
     }
