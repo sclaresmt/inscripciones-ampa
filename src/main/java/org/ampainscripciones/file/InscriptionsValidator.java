@@ -1,8 +1,12 @@
 package org.ampainscripciones.file;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math3.geometry.partitioning.Region;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTColor;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -112,11 +116,13 @@ public class InscriptionsValidator {
                 .dropWhile(rowsWithDoubts::containsKey).toList();
 
         try (Workbook wb = WorkbookFactory.create(resultFile)) {
-            Sheet sheet = wb.getSheetAt(0);
-            short paymentInfoCellNumber = sheet.getRow(2).getLastCellNum();
-            for (Iterator<Row> rowIterator = sheet.rowIterator(); rowIterator.hasNext();) {
-                Row row = rowIterator.next();
-                Cell cell = row.createCell(paymentInfoCellNumber);
+            final Sheet sheet = wb.getSheetAt(0);
+            final short paymentInfoCellNumber = sheet.getRow(0).getLastCellNum();
+            final Cell payedHeadCell = sheet.getRow(0).createCell(paymentInfoCellNumber);
+            payedHeadCell.setCellValue("¿Pagado?");
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                final Row row = sheet.getRow(i);
+                final Cell cell = row.createCell(paymentInfoCellNumber);
                 if (payedRows.contains(row.getRowNum())) {
                     cell.setCellValue(Payed.SÍ.name());
                 } else if (rowsWithDoubts.containsKey(row.getRowNum())) {
@@ -126,13 +132,21 @@ public class InscriptionsValidator {
                 }
             }
 
-            SheetConditionalFormatting sheetConditionalFormatting = sheet.getSheetConditionalFormatting();
-            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.SÍ + "\"")
-                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.GREEN.getIndex());
-            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.NO + "\"")
-                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.RED.getIndex());
-            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.DUDA + "\"")
-                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.BLUE.getIndex());
+            final SheetConditionalFormatting sheetConditionalFormatting = sheet.getSheetConditionalFormatting();
+//            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.SÍ + "\"")
+//                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.GREEN.getIndex());
+//            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.NO + "\"")
+//                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.RED.getIndex());
+//            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.DUDA + "\"")
+//                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.BLUE.getIndex());
+            CellRangeAddress[] ranges = new CellRangeAddress[]{new CellRangeAddress(1, sheet.getLastRowNum(),
+                    0, paymentInfoCellNumber)};
+            sheetConditionalFormatting.addConditionalFormatting(ranges, createFormattingRuleForFormula("=$T2=\""
+                    + Payed.SÍ + "\"", IndexedColors.GREEN.getIndex(), sheetConditionalFormatting));
+            sheetConditionalFormatting.addConditionalFormatting(ranges, createFormattingRuleForFormula("=$T2=\""
+                    + Payed.NO + "\"", IndexedColors.RED.getIndex(), sheetConditionalFormatting));
+            sheetConditionalFormatting.addConditionalFormatting(ranges, createFormattingRuleForFormula("=$T2=\""
+                    + Payed.DUDA + "\"", IndexedColors.BLUE.getIndex(), sheetConditionalFormatting));
 
             // Dummy path to avoid bug: https://stackoverflow.com/a/52389913
             final String dummyPath = resultFile + ".new";
@@ -143,6 +157,21 @@ public class InscriptionsValidator {
             Files.move(Paths.get(dummyPath), resultFile.toPath());
         }
         return resultFile;
+    }
+
+    private ConditionalFormattingRule createFormattingRuleForFormula(final String formula, final short colourIndex, SheetConditionalFormatting sheetConditionalFormatting) {
+        ConditionalFormattingRule rule = sheetConditionalFormatting.createConditionalFormattingRule(formula);
+        PatternFormatting patternFormatting = rule.createPatternFormatting();
+//        patternFormatting.setFillBackgroundColor(colourIndex);
+
+//        patternFormatting.setFillForegroundColor(colourIndex);
+//        patternFormatting.setFillPattern(FillPatternType.SOLID_FOREGROUND.getCode());
+
+        patternFormatting.setFillBackgroundColor(IndexedColors.BLACK.index);
+        patternFormatting.setFillPattern(FillPatternType.BIG_SPOTS.getCode());
+        patternFormatting.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+
+        return rule;
     }
 
     protected File getInscriptionFile() throws IOException {
