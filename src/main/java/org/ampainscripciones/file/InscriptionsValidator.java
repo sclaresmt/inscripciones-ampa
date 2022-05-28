@@ -120,33 +120,39 @@ public class InscriptionsValidator {
             final short paymentInfoCellNumber = sheet.getRow(0).getLastCellNum();
             final Cell payedHeadCell = sheet.getRow(0).createCell(paymentInfoCellNumber);
             payedHeadCell.setCellValue("¿Pagado?");
+            CellStyle greenStyle = createCellStyle(wb, IndexedColors.GREEN.getIndex());
+            CellStyle redStyle = createCellStyle(wb, IndexedColors.RED.getIndex());
+            CellStyle blueStyle = createCellStyle(wb, IndexedColors.BLUE.getIndex());
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 final Row row = sheet.getRow(i);
                 final Cell cell = row.createCell(paymentInfoCellNumber);
                 if (payedRows.contains(row.getRowNum())) {
                     cell.setCellValue(Payed.SÍ.name());
+                    cell.setCellStyle(greenStyle);
                 } else if (rowsWithDoubts.containsKey(row.getRowNum())) {
                     cell.setCellValue(Payed.DUDA.name());
+                    cell.setCellStyle(blueStyle);
                 } else {
                     cell.setCellValue(Payed.NO.name());
+                    cell.setCellStyle(redStyle);
                 }
             }
 
-            final SheetConditionalFormatting sheetConditionalFormatting = sheet.getSheetConditionalFormatting();
-//            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.SÍ + "\"")
-//                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.GREEN.getIndex());
-//            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.NO + "\"")
-//                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.RED.getIndex());
-//            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.DUDA + "\"")
-//                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.BLUE.getIndex());
-            CellRangeAddress[] ranges = new CellRangeAddress[]{new CellRangeAddress(1, sheet.getLastRowNum(),
-                    0, paymentInfoCellNumber)};
-            sheetConditionalFormatting.addConditionalFormatting(ranges, createFormattingRuleForFormula("=$T2=\""
-                    + Payed.SÍ + "\"", IndexedColors.GREEN.getIndex(), sheetConditionalFormatting));
-            sheetConditionalFormatting.addConditionalFormatting(ranges, createFormattingRuleForFormula("=$T2=\""
-                    + Payed.NO + "\"", IndexedColors.RED.getIndex(), sheetConditionalFormatting));
-            sheetConditionalFormatting.addConditionalFormatting(ranges, createFormattingRuleForFormula("=$T2=\""
-                    + Payed.DUDA + "\"", IndexedColors.BLUE.getIndex(), sheetConditionalFormatting));
+//            final SheetConditionalFormatting sheetConditionalFormatting = sheet.getSheetConditionalFormatting();
+////            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.SÍ + "\"")
+////                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.GREEN.getIndex());
+////            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.NO + "\"")
+////                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.RED.getIndex());
+////            sheetConditionalFormatting.createConditionalFormattingRule("=$T2=\"" + Payed.DUDA + "\"")
+////                    .createPatternFormatting().setFillBackgroundColor(IndexedColors.BLUE.getIndex());
+//            CellRangeAddress[] ranges = new CellRangeAddress[]{new CellRangeAddress(1, sheet.getLastRowNum(),
+//                    0, paymentInfoCellNumber)};
+//            sheetConditionalFormatting.addConditionalFormatting(ranges, createFormattingRuleForFormula("=$T2=\""
+//                    + Payed.SÍ + "\"", IndexedColors.GREEN.getIndex(), sheetConditionalFormatting));
+//            sheetConditionalFormatting.addConditionalFormatting(ranges, createFormattingRuleForFormula("=$T2=\""
+//                    + Payed.NO + "\"", IndexedColors.RED.getIndex(), sheetConditionalFormatting));
+//            sheetConditionalFormatting.addConditionalFormatting(ranges, createFormattingRuleForFormula("=$T2=\""
+//                    + Payed.DUDA + "\"", IndexedColors.BLUE.getIndex(), sheetConditionalFormatting));
 
             // Dummy path to avoid bug: https://stackoverflow.com/a/52389913
             final String dummyPath = resultFile + ".new";
@@ -157,6 +163,13 @@ public class InscriptionsValidator {
             Files.move(Paths.get(dummyPath), resultFile.toPath());
         }
         return resultFile;
+    }
+
+    private CellStyle createCellStyle(Workbook wb, short colorIndex) {
+        CellStyle cellStyle = wb.createCellStyle();
+        cellStyle.setFillForegroundColor(colorIndex);
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        return cellStyle;
     }
 
     private ConditionalFormattingRule createFormattingRuleForFormula(final String formula, final short colourIndex, SheetConditionalFormatting sheetConditionalFormatting) {
