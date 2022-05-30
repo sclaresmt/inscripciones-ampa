@@ -2,10 +2,7 @@ package org.ampainscripciones.file;
 
 import org.apache.poi.hssf.record.FormulaRecord;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Color;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -45,11 +42,12 @@ class InscriptionsValidatorTest {
         assertTrue(validatedFile.exists());
         try (Workbook wb = WorkbookFactory.create(validatedFile)) {
             Sheet sheet = wb.getSheetAt(0);
-            assertEquals(3, sheet.getSheetConditionalFormatting().getNumConditionalFormattings());
-//            assertEquals(1, sheet.getRow(2).getRowStyle().getFillBackgroundColor());
-//            assertEquals(1, sheet.getRow(4).getRowStyle().getFillBackgroundColor());
-//            assertEquals(1, sheet.getRow(7).getRowStyle().getFillBackgroundColor());
-//            assertEquals(new FormulaRecord().getCachedErrorValue(), sheet.getSheetConditionalFormatting().getNumConditionalFormattings());
+            assertEquals(IndexedColors.PALE_BLUE.getIndex(), sheet.getRow(2).getCell(1).getCellStyle().getFillForegroundColor());
+            assertEquals(FillPatternType.SOLID_FOREGROUND, sheet.getRow(2).getCell(1).getCellStyle().getFillPattern());
+            assertEquals(IndexedColors.LIGHT_GREEN.getIndex(), sheet.getRow(3).getCell(1).getCellStyle().getFillForegroundColor());
+            assertEquals(FillPatternType.SOLID_FOREGROUND, sheet.getRow(3).getCell(1).getCellStyle().getFillPattern());
+            assertEquals(IndexedColors.RED1.getIndex(), sheet.getRow(6).getCell(1).getCellStyle().getFillForegroundColor());
+            assertEquals(FillPatternType.SOLID_FOREGROUND, sheet.getRow(6).getCell(1).getCellStyle().getFillPattern());
         }
     }
 

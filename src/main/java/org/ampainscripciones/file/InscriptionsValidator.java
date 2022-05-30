@@ -1,24 +1,14 @@
 package org.ampainscripciones.file;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.math3.geometry.partitioning.Region;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
-import org.apache.poi.xssf.usermodel.XSSFColor;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTColor;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.FileStore;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class InscriptionsValidator {
 
@@ -122,24 +112,27 @@ public class InscriptionsValidator {
             final short paymentInfoCellNumber = sheet.getRow(0).getLastCellNum();
             final Cell payedHeadCell = sheet.getRow(0).createCell(paymentInfoCellNumber);
             payedHeadCell.setCellValue("¿Pagado?");
-
-            CellStyle greenStyle = createCellStyle(wb, IndexedColors.LIGHT_GREEN.getIndex());
-            CellStyle redStyle = createCellStyle(wb, IndexedColors.RED1.getIndex());
+            CellStyle currentCellStyle = payedHeadCell.getCellStyle();
+            CellStyle greenStyle = createCellStyle(currentCellStyle, wb, IndexedColors.LIGHT_GREEN.getIndex());
+            CellStyle redStyle = createCellStyle(currentCellStyle, wb, IndexedColors.RED1.getIndex());
             // This actually shows as orange
-            CellStyle blueStyle = createCellStyle(wb, IndexedColors.PALE_BLUE.getIndex());
+            CellStyle blueStyle = createCellStyle(currentCellStyle, wb, IndexedColors.PALE_BLUE.getIndex());
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 final Row row = sheet.getRow(i);
                 final Cell cell = row.createCell(paymentInfoCellNumber);
                 if (payedRows.contains(row.getRowNum())) {
                     cell.setCellValue(Payed.SÍ.name());
-                    modifyOrCreateRowStyle(greenStyle, row);
+                    row.setRowStyle(greenStyle);
+                    modifyRowStyleCellByCell(greenStyle, row);
                 } else if (rowsWithDoubts.containsKey(row.getRowNum())) {
                     cell.setCellValue(Payed.DUDA.name());
-                    modifyOrCreateRowStyle(blueStyle, row);
+                    row.setRowStyle(blueStyle);
+                    modifyRowStyleCellByCell(blueStyle, row);
                 } else {
                     cell.setCellValue(Payed.NO.name());
-                    modifyOrCreateRowStyle(redStyle, row);
+                    row.setRowStyle(redStyle);
+                    modifyRowStyleCellByCell(redStyle, row);
                 }
             }
 
@@ -154,21 +147,19 @@ public class InscriptionsValidator {
         return resultFile;
     }
 
-    private void modifyOrCreateRowStyle(CellStyle greenStyle, Row row) {
+    private void modifyRowStyleCellByCell(CellStyle newStyle, Row row) {
         for(Iterator<Cell> cellIterator = row.cellIterator(); cellIterator.hasNext();) {
             Cell nextCell = cellIterator.next();
-            CellStyle cellStyle = nextCell.getCellStyle();
-            if (cellStyle != null) {
-                cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-                cellStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
-            } else {
-                nextCell.setCellStyle(greenStyle);
+            if (nextCell.getColumnIndex() == 0) {
+                continue;
             }
+            nextCell.setCellStyle(newStyle);
         }
     }
 
-    private CellStyle createCellStyle(Workbook wb, short colorIndex) {
+    private CellStyle createCellStyle(CellStyle currentCellStyle, Workbook wb, short colorIndex) {
         CellStyle cellStyle = wb.createCellStyle();
+        cellStyle.cloneStyleFrom(currentCellStyle);
         cellStyle.setFillForegroundColor(colorIndex);
         cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         return cellStyle;
