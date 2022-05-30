@@ -9,17 +9,19 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class InscriptionsValidator {
 
     protected Map<Integer, String> extractEmailData(File file) throws IOException {
 
-        if (!file.exists()) {
+        if (!file.exists() || file.isDirectory() && !Arrays.stream(file.list()).findFirst().isPresent()) {
             throw new IOException(String.format("File %s does not exist!", file.getAbsolutePath()));
         }
 
+        File inscriptionsFile = new File(Arrays.stream(file.list()).findFirst().get());
         Map<Integer, String> emailValuesByRowIndex = new HashMap<>();
-        try (Workbook wb = WorkbookFactory.create(file)) {
+        try (Workbook wb = WorkbookFactory.create(inscriptionsFile)) {
 
             Sheet sheet = wb.getSheetAt(0);
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -105,8 +107,7 @@ public class InscriptionsValidator {
         final List<String> paymentsData = this.extractPaymentsData(paymentsFile);
         final Map<Integer, String> rowsWithDoubts = this.returnRowsWithDoubts(inscriptionData, paymentsData);
         final List<Integer> payedRows = this.returnPayedRows(inscriptionData, paymentsData).stream()
-                .dropWhile(rowsWithDoubts::containsKey).toList();
-
+                .filter(payedRow -> !rowsWithDoubts.containsKey(payedRow)).collect(Collectors.toList());
         try (Workbook wb = WorkbookFactory.create(resultFile)) {
             final Sheet sheet = wb.getSheetAt(0);
             final short paymentInfoCellNumber = sheet.getRow(0).getLastCellNum();
@@ -165,35 +166,15 @@ public class InscriptionsValidator {
         return cellStyle;
     }
 
-    private ConditionalFormattingRule createFormattingRuleForFormula(final String formula, final short colourIndex, SheetConditionalFormatting sheetConditionalFormatting) {
-        ConditionalFormattingRule rule = sheetConditionalFormatting.createConditionalFormattingRule(formula);
-        PatternFormatting patternFormatting = rule.createPatternFormatting();
-
-//        patternFormatting.setFillBackgroundColor(colourIndex);
-//        patternFormatting.setFillPattern(FillPatternType.SOLID_FOREGROUND.getCode());
-
-        patternFormatting.setFillBackgroundColor(colourIndex);
-        patternFormatting.setFillPattern(FillPatternType.BRICKS.getCode());
-
-//        patternFormatting.setFillForegroundColor(colourIndex);
-//        patternFormatting.setFillPattern(FillPatternType.SOLID_FOREGROUND.getCode());
-
-//        patternFormatting.setFillBackgroundColor(IndexedColors.BLACK.index);
-//        patternFormatting.setFillPattern(FillPatternType.BIG_SPOTS.getCode());
-//        patternFormatting.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
-
-        return rule;
-    }
-
     protected File getInscriptionFile() throws IOException {
-        return new File("./inscripciones");
+        return new File("inscripciones");
     }
 
     protected File getPaymentsFile() {
-        return new File("./pagos");
+        return new File("pagos");
     }
 
     protected String getResultFilePath() {
-        return "./";
+        return "";
     }
 }

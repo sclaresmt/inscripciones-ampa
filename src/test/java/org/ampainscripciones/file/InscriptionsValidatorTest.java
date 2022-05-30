@@ -23,9 +23,9 @@ import static org.mockito.Mockito.doReturn;
 @ExtendWith(MockitoExtension.class)
 class InscriptionsValidatorTest {
 
-    private static final String INSCRIPTIONS_TEST_FILE = "./src/test/resources/inscriptions_test.xlsx";
+    private static final String INSCRIPTIONS_TEST_FILE = "./src/test/resources/inscripciones";
 
-    private static final String PAYMENTS_TEST_FILE = "./src/test/resources/Movimientos_cuenta_0281573.xls";
+    private static final String PAYMENTS_TEST_FILE = "./src/test/resources/pagos";
 
     @Spy
     @InjectMocks
