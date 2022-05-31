@@ -1,6 +1,5 @@
 package org.ampainscripciones.file;
 
-import org.apache.poi.hssf.record.FormulaRecord;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.junit.jupiter.api.Test;
@@ -11,7 +10,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,9 +21,7 @@ import static org.mockito.Mockito.doReturn;
 @ExtendWith(MockitoExtension.class)
 class InscriptionsValidatorTest {
 
-    private static final String INSCRIPTIONS_TEST_FILE = "./src/test/resources/inscripciones";
-
-    private static final String PAYMENTS_TEST_FILE = "./src/test/resources/pagos";
+    private static final String TEST_RESOURCES_DIRECTORY = "./src/test/resources";
 
     @Spy
     @InjectMocks
@@ -33,8 +29,8 @@ class InscriptionsValidatorTest {
 
     @Test
     public void validateAndCreateValidatedFile() throws IOException {
-        doReturn(new File(INSCRIPTIONS_TEST_FILE)).when(this.inscriptionsValidator).getInscriptionFile();
-        doReturn(new File(PAYMENTS_TEST_FILE)).when(this.inscriptionsValidator).getPaymentsFile();
+        doReturn(new File(TEST_RESOURCES_DIRECTORY)).when(this.inscriptionsValidator).getInscriptionFile();
+        doReturn(new File(TEST_RESOURCES_DIRECTORY)).when(this.inscriptionsValidator).getPaymentsFile();
         doReturn("./src/test/resources/").when(this.inscriptionsValidator).getResultFilePath();
 
         File validatedFile = this.inscriptionsValidator.validateAndCreateValidatedFile();
@@ -53,7 +49,7 @@ class InscriptionsValidatorTest {
 
     @Test
     public void extractEmailData() throws IOException {
-        File file = new File(INSCRIPTIONS_TEST_FILE);
+        File file = new File(TEST_RESOURCES_DIRECTORY + "/inscriptions_test.xlsx");
 
         Map<Integer, String> data = this.inscriptionsValidator.extractEmailData(file);
 
@@ -79,7 +75,7 @@ class InscriptionsValidatorTest {
 
     @Test
     public void extractPaymentsData() throws IOException, InvalidFormatException {
-        File file = new File(PAYMENTS_TEST_FILE);
+        File file = new File(TEST_RESOURCES_DIRECTORY);
 
         List<String> data = this.inscriptionsValidator.extractPaymentsData(file);
 

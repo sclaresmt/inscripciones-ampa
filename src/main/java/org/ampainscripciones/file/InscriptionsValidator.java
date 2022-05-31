@@ -14,14 +14,8 @@ import java.util.stream.Collectors;
 public class InscriptionsValidator {
 
     protected Map<Integer, String> extractEmailData(File file) throws IOException {
-
-        if (!file.exists() || file.isDirectory() && !Arrays.stream(file.list()).findFirst().isPresent()) {
-            throw new IOException(String.format("File %s does not exist!", file.getAbsolutePath()));
-        }
-
-        File inscriptionsFile = new File(Arrays.stream(file.list()).findFirst().get());
         Map<Integer, String> emailValuesByRowIndex = new HashMap<>();
-        try (Workbook wb = WorkbookFactory.create(inscriptionsFile)) {
+        try (Workbook wb = WorkbookFactory.create(file)) {
 
             Sheet sheet = wb.getSheetAt(0);
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -167,11 +161,15 @@ public class InscriptionsValidator {
     }
 
     protected File getInscriptionFile() throws IOException {
-        return new File("inscripciones");
+        File dir = new File("");
+        return Arrays.stream(Objects.requireNonNull(dir.listFiles((dir1, name) -> name.endsWith(".xlsx"))))
+                .findFirst().orElseThrow(() -> new IOException("No file found with extension '.xlsx' to check inscriptions"));
     }
 
-    protected File getPaymentsFile() {
-        return new File("pagos");
+    protected File getPaymentsFile() throws IOException {
+        File dir = new File("");
+        return Arrays.stream(Objects.requireNonNull(dir.listFiles((dir1, name) -> name.endsWith(".xls"))))
+                .findFirst().orElseThrow(() -> new IOException("No file found with extension '.xls' to check payments"));
     }
 
     protected String getResultFilePath() {
