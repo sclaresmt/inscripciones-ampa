@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,9 +30,7 @@ class InscriptionsValidatorTest {
 
     @Test
     public void validateAndCreateValidatedFile() throws IOException {
-        doReturn(new File(TEST_RESOURCES_DIRECTORY)).when(this.inscriptionsValidator).getInscriptionFile();
-        doReturn(new File(TEST_RESOURCES_DIRECTORY)).when(this.inscriptionsValidator).getPaymentsFile();
-        doReturn("./src/test/resources/").when(this.inscriptionsValidator).getResultFilePath();
+        doReturn(TEST_RESOURCES_DIRECTORY).when(this.inscriptionsValidator).getSourcesFilesFolderPath();
 
         File validatedFile = this.inscriptionsValidator.validateAndCreateValidatedFile();
 

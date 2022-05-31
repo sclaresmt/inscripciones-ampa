@@ -91,7 +91,7 @@ public class InscriptionsValidator {
     }
 
     public File validateAndCreateValidatedFile() throws IOException {
-        final File resultFile = new File(this.getResultFilePath() + "result-file.xlsx");
+        final File resultFile = new File(this.getSourcesFilesFolderPath() + File.separator + "result-file.xlsx");
         if (resultFile.exists()) {
             resultFile.delete();
         }
@@ -170,10 +170,6 @@ public class InscriptionsValidator {
         File dir = new File(this.getSourcesFilesFolderPath());
         return Arrays.stream(Objects.requireNonNull(dir.listFiles((dir1, name) -> name.endsWith(".xls"))))
                 .findFirst().orElseThrow(() -> new IOException("No file found with extension '.xls' to check payments"));
-    }
-
-    protected String getResultFilePath() {
-        return "";
     }
 
     protected String getSourcesFilesFolderPath() {
