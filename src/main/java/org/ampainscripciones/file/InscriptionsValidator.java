@@ -161,18 +161,22 @@ public class InscriptionsValidator {
     }
 
     protected File getInscriptionFile() throws IOException {
-        File dir = new File("");
+        File dir = new File(this.getSourcesFilesFolderPath());
         return Arrays.stream(Objects.requireNonNull(dir.listFiles((dir1, name) -> name.endsWith(".xlsx"))))
                 .findFirst().orElseThrow(() -> new IOException("No file found with extension '.xlsx' to check inscriptions"));
     }
 
     protected File getPaymentsFile() throws IOException {
-        File dir = new File("");
+        File dir = new File(this.getSourcesFilesFolderPath());
         return Arrays.stream(Objects.requireNonNull(dir.listFiles((dir1, name) -> name.endsWith(".xls"))))
                 .findFirst().orElseThrow(() -> new IOException("No file found with extension '.xls' to check payments"));
     }
 
     protected String getResultFilePath() {
+        return "";
+    }
+
+    protected String getSourcesFilesFolderPath() {
         return "";
     }
 }

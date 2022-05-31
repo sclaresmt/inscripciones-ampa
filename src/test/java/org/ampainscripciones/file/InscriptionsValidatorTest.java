@@ -75,7 +75,7 @@ class InscriptionsValidatorTest {
 
     @Test
     public void extractPaymentsData() throws IOException, InvalidFormatException {
-        File file = new File(TEST_RESOURCES_DIRECTORY);
+        File file = new File(TEST_RESOURCES_DIRECTORY + "/Movimientos_cuenta_0281573.xls");
 
         List<String> data = this.inscriptionsValidator.extractPaymentsData(file);
 
@@ -129,6 +129,40 @@ class InscriptionsValidatorTest {
         assertTrue(result.contains(3));
         assertTrue(result.contains(4));
         assertTrue(result.contains(10));
+    }
+
+    @Test
+    public void getInscriptionFile() throws IOException {
+        doReturn("src/test/resources").when(this.inscriptionsValidator).getSourcesFilesFolderPath();
+
+        File result = this.inscriptionsValidator.getInscriptionFile();
+
+        assertTrue(result.exists());
+        assertEquals("inscriptions_test.xlsx", result.getName());
+    }
+
+    @Test
+    public void getInscriptionFileThrowsIOExceptionWhenFileNotFoundInPath() throws IOException {
+        doReturn("src/test").when(this.inscriptionsValidator).getSourcesFilesFolderPath();
+
+        assertThrows(IOException.class, () -> this.inscriptionsValidator.getInscriptionFile());
+    }
+
+    @Test
+    public void getPaymentsFile() throws IOException {
+        doReturn("src/test/resources").when(this.inscriptionsValidator).getSourcesFilesFolderPath();
+
+        File result = this.inscriptionsValidator.getPaymentsFile();
+
+        assertTrue(result.exists());
+        assertEquals("Movimientos_cuenta_0281573.xls", result.getName());
+    }
+
+    @Test
+    public void getPaymentsFileThrowsIOExceptionWhenFileNotFoundInPath() throws IOException {
+        doReturn("src/test").when(this.inscriptionsValidator).getSourcesFilesFolderPath();
+
+        assertThrows(IOException.class, () -> this.inscriptionsValidator.getPaymentsFile());
     }
 
     private List<String> buildPaymentData() {
