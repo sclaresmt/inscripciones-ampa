@@ -173,6 +173,6 @@ public class InscriptionsValidator {
     }
 
     protected String getSourcesFilesFolderPath() {
-        return "";
+        return ".";
     }
 }
