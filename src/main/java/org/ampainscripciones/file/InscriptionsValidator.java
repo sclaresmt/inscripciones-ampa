@@ -113,23 +113,7 @@ public class InscriptionsValidator {
             // This actually shows as orange
             CellStyle blueStyle = createCellStyle(currentCellStyle, wb, IndexedColors.PALE_BLUE.getIndex());
 
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-                final Row row = sheet.getRow(i);
-                final Cell cell = row.createCell(paymentInfoCellNumber);
-                if (payedRows.contains(row.getRowNum())) {
-                    cell.setCellValue(Payed.SÍ.name());
-                    row.setRowStyle(greenStyle);
-                    modifyRowStyleCellByCell(greenStyle, row);
-                } else if (rowsWithDoubts.containsKey(row.getRowNum())) {
-                    cell.setCellValue(Payed.DUDA.name());
-                    row.setRowStyle(blueStyle);
-                    modifyRowStyleCellByCell(blueStyle, row);
-                } else {
-                    cell.setCellValue(Payed.NO.name());
-                    row.setRowStyle(redStyle);
-                    modifyRowStyleCellByCell(redStyle, row);
-                }
-            }
+            iterateAndValidateEachRow(rowsWithDoubts, payedRows, sheet, paymentInfoCellNumber, greenStyle, redStyle, blueStyle);
 
             // Dummy path to avoid bug: https://stackoverflow.com/a/52389913
             final String dummyPath = resultFile + ".new";
@@ -139,7 +123,28 @@ public class InscriptionsValidator {
             Files.delete(resultFile.toPath());
             Files.move(Paths.get(dummyPath), resultFile.toPath());
         }
+        System.out.println("Inscripciones validadas!");
         return resultFile;
+    }
+
+    private void iterateAndValidateEachRow(Map<Integer, String> rowsWithDoubts, List<Integer> payedRows, Sheet sheet, short paymentInfoCellNumber, CellStyle greenStyle, CellStyle redStyle, CellStyle blueStyle) {
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            final Row row = sheet.getRow(i);
+            final Cell cell = row.createCell(paymentInfoCellNumber);
+            if (payedRows.contains(row.getRowNum())) {
+                cell.setCellValue(Payed.SÍ.name());
+                row.setRowStyle(greenStyle);
+                modifyRowStyleCellByCell(greenStyle, row);
+            } else if (rowsWithDoubts.containsKey(row.getRowNum())) {
+                cell.setCellValue(Payed.DUDA.name());
+                row.setRowStyle(blueStyle);
+                modifyRowStyleCellByCell(blueStyle, row);
+            } else {
+                cell.setCellValue(Payed.NO.name());
+                row.setRowStyle(redStyle);
+                modifyRowStyleCellByCell(redStyle, row);
+            }
+        }
     }
 
     private void modifyRowStyleCellByCell(CellStyle newStyle, Row row) {
