@@ -1,5 +1,6 @@
 package org.ampainscripciones.file;
 
+import org.ampainscripciones.model.InscriptionDTO;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.junit.jupiter.api.Test;
@@ -10,7 +11,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,29 +47,39 @@ class InscriptionsValidatorTest {
     }
 
     @Test
-    public void extractEmailData() throws IOException {
+    public void extractInscriptionData() throws IOException {
         File file = new File(TEST_RESOURCES_DIRECTORY + "/inscriptions_test.xlsx");
 
-        Map<Integer, String> data = this.inscriptionsValidator.extractEmailData(file);
+        Map<Integer, InscriptionDTO> data = this.inscriptionsValidator.extractInscriptionsData(file);
 
-        assertEquals(10, data.size());
-        assertEquals("pepitopalotes@gmail.com", data.get(1));
-        assertEquals("pepitopalotes@gmail.com", data.get(2));
-        assertEquals("pepitopalotes34@gmail.com", data.get(3));
-        assertEquals("pepitopalotes35@gmail.com", data.get(4));
-        assertEquals("pepitopalotes36@gmail.com", data.get(5));
-        assertEquals("pepitopalotes37@gmail.com", data.get(6));
-        assertEquals("pepitopalotes38@gmail.com", data.get(7));
-        assertEquals("lafigatatia@gmail.com", data.get(8));
-        assertEquals("lamarequeva@gmail.com", data.get(9));
-        assertEquals("latiatamare@gmail.com", data.get(10));
+        assertEquals(15, data.size());
+        assertEquals("pepitopalotes@gmail.com", data.get(1).getEmail());
+        assertEquals("pepitopalotes@gmail.com", data.get(2).getEmail());
+        assertEquals("pepitopalotes34@gmail.com", data.get(3).getEmail());
+        assertEquals("pepitopalotes35@gmail.com", data.get(4).getEmail());
+        assertEquals("pepitopalotes36@gmail.com", data.get(5).getEmail());
+        assertEquals("pepitopalotes37@gmail.com", data.get(6).getEmail());
+        assertEquals("pepitopalotes38@gmail.com", data.get(7).getEmail());
+        assertEquals("lafigatatia@gmail.com", data.get(8).getEmail());
+        assertEquals("lamarequeva@gmail.com", data.get(9).getEmail());
+        assertEquals("latiatamare@gmail.com", data.get(10).getEmail());
+        assertEquals("testingname@gmail.com", data.get(11).getEmail());
+        assertEquals("testingname2@gmail.com", data.get(12).getEmail());
+        assertEquals("testingname3@gmail.com", data.get(13).getEmail());
+        assertEquals("testingname4@gmail.com", data.get(14).getEmail());
+        InscriptionDTO inscriptionDTO = data.get(15);
+        assertEquals("testingname5@gmail.com", inscriptionDTO.getEmail());
+        assertEquals("Inmaculada Inma Inma", inscriptionDTO.getParent1Name());
+        assertEquals("Other Parent Name", inscriptionDTO.getParent2Name());
+        assertEquals("Altea13 Palotes Sánchez", inscriptionDTO.getAusiasChild1Name());
+        assertEquals("Other Pérez Surname", inscriptionDTO.getAusiasChild2Name());
     }
 
     @Test
     public void extractEmailDataThrowsIOExceptionWhenFileDoesNotExist() {
         File file = new File("A non existing file");
 
-        assertThrows(IOException.class, () -> this.inscriptionsValidator.extractEmailData(file));
+        assertThrows(IOException.class, () -> this.inscriptionsValidator.extractInscriptionsData(file));
     }
 
     @Test

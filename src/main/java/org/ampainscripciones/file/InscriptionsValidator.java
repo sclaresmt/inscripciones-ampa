@@ -1,11 +1,11 @@
 package org.ampainscripciones.file;
 
+import org.ampainscripciones.model.InscriptionDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,18 +15,25 @@ import java.util.stream.Collectors;
 
 public class InscriptionsValidator {
 
-    protected Map<Integer, String> extractEmailData(File file) throws IOException {
-        Map<Integer, String> emailValuesByRowIndex = new HashMap<>();
+    protected Map<Integer, InscriptionDTO> extractInscriptionsData(final File file) throws IOException {
+        final Map<Integer, InscriptionDTO> inscriptionDataByRowIndex = new HashMap<>();
         try (Workbook wb = WorkbookFactory.create(file)) {
 
-            Sheet sheet = wb.getSheetAt(0);
+            final Sheet sheet = wb.getSheetAt(0);
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-                emailValuesByRowIndex.put(i, sheet.getRow(i).getCell(1).getStringCellValue());
+                final Row row = sheet.getRow(i);
+                final InscriptionDTO inscriptionDTO = new InscriptionDTO();
+                inscriptionDTO.setEmail(getStringValueWithCheck(row.getCell(1)));
+                inscriptionDTO.setParent1Name(getStringValueWithCheck(row.getCell(2)));
+                inscriptionDTO.setParent2Name(getStringValueWithCheck(row.getCell(4)));
+                inscriptionDTO.setAusiasChild1Name(getStringValueWithCheck(row.getCell(9)));
+                inscriptionDTO.setAusiasChild2Name(getStringValueWithCheck(row.getCell(14)));
+                inscriptionDataByRowIndex.put(i, inscriptionDTO);
             }
 
         }
 
-        return emailValuesByRowIndex;
+        return inscriptionDataByRowIndex;
     }
 
     protected List<String> extractPaymentsData(File file) throws IOException {
@@ -99,7 +106,8 @@ public class InscriptionsValidator {
         }
         Files.copy(this.getInscriptionFile().toPath(), resultFile.toPath());
         final File paymentsFile = this.getPaymentsFile();
-        final Map<Integer, String> inscriptionData = this.extractEmailData(resultFile);
+//        final Map<Integer, String> inscriptionData = this.extractInscriptionsData(resultFile);
+        final Map<Integer, String> inscriptionData = new HashMap<>();
         final List<String> paymentsData = this.extractPaymentsData(paymentsFile);
         final Map<Integer, String> rowsWithDoubts = this.returnRowsWithDoubts(inscriptionData, paymentsData);
         final List<Integer> payedRows = this.returnPayedRows(inscriptionData, paymentsData).stream()
@@ -181,5 +189,12 @@ public class InscriptionsValidator {
 
     protected String getSourcesFilesFolderPath() {
         return ".";
+    }
+
+    private String getStringValueWithCheck(final Cell cell) {
+        if (cell != null && CellType.STRING.equals(cell.getCellType())) {
+            return cell.getStringCellValue();
+        }
+        return null;
     }
 }
