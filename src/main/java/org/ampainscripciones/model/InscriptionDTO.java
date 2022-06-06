@@ -10,6 +10,10 @@ public class InscriptionDTO {
 
     private String parent2Name;
 
+    private String child1Name;
+
+    private String child2Name;
+
     private String ausiasChild1Name;
 
     private String ausiasChild2Name;
@@ -36,6 +40,22 @@ public class InscriptionDTO {
 
     public void setParent2Name(String parent2Name) {
         this.parent2Name = parent2Name;
+    }
+
+    public String getChild1Name() {
+        return child1Name;
+    }
+
+    public void setChild1Name(String child1Name) {
+        this.child1Name = child1Name;
+    }
+
+    public String getChild2Name() {
+        return child2Name;
+    }
+
+    public void setChild2Name(String child2Name) {
+        this.child2Name = child2Name;
     }
 
     public String getAusiasChild1Name() {

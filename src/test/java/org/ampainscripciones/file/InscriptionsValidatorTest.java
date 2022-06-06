@@ -37,12 +37,29 @@ class InscriptionsValidatorTest {
         assertTrue(validatedFile.exists());
         try (Workbook wb = WorkbookFactory.create(validatedFile)) {
             Sheet sheet = wb.getSheetAt(0);
+
+            // Rows with doubts
+            assertEquals(IndexedColors.PALE_BLUE.getIndex(), sheet.getRow(1).getCell(1).getCellStyle().getFillForegroundColor());
+            assertEquals(FillPatternType.SOLID_FOREGROUND, sheet.getRow(1).getCell(1).getCellStyle().getFillPattern());
             assertEquals(IndexedColors.PALE_BLUE.getIndex(), sheet.getRow(2).getCell(1).getCellStyle().getFillForegroundColor());
-            assertEquals(FillPatternType.SOLID_FOREGROUND, sheet.getRow(2).getCell(1).getCellStyle().getFillPattern());
+            assertEquals(IndexedColors.PALE_BLUE.getIndex(), sheet.getRow(4).getCell(1).getCellStyle().getFillForegroundColor());
+            assertEquals(IndexedColors.PALE_BLUE.getIndex(), sheet.getRow(5).getCell(1).getCellStyle().getFillForegroundColor());
+            assertEquals(IndexedColors.PALE_BLUE.getIndex(), sheet.getRow(11).getCell(1).getCellStyle().getFillForegroundColor());
+            assertEquals(IndexedColors.PALE_BLUE.getIndex(), sheet.getRow(12).getCell(1).getCellStyle().getFillForegroundColor());
+
+            // Payed rows
             assertEquals(IndexedColors.LIGHT_GREEN.getIndex(), sheet.getRow(3).getCell(1).getCellStyle().getFillForegroundColor());
             assertEquals(FillPatternType.SOLID_FOREGROUND, sheet.getRow(3).getCell(1).getCellStyle().getFillPattern());
+            assertEquals(IndexedColors.LIGHT_GREEN.getIndex(), sheet.getRow(9).getCell(1).getCellStyle().getFillForegroundColor());
+            assertEquals(IndexedColors.LIGHT_GREEN.getIndex(), sheet.getRow(13).getCell(1).getCellStyle().getFillForegroundColor());
+            assertEquals(IndexedColors.LIGHT_GREEN.getIndex(), sheet.getRow(14).getCell(1).getCellStyle().getFillForegroundColor());
+
+            // Not payed rows
             assertEquals(IndexedColors.RED1.getIndex(), sheet.getRow(6).getCell(1).getCellStyle().getFillForegroundColor());
             assertEquals(FillPatternType.SOLID_FOREGROUND, sheet.getRow(6).getCell(1).getCellStyle().getFillPattern());
+            assertEquals(IndexedColors.RED1.getIndex(), sheet.getRow(7).getCell(1).getCellStyle().getFillForegroundColor());
+            assertEquals(IndexedColors.RED1.getIndex(), sheet.getRow(8).getCell(1).getCellStyle().getFillForegroundColor());
+            assertEquals(IndexedColors.RED1.getIndex(), sheet.getRow(10).getCell(1).getCellStyle().getFillForegroundColor());
         }
     }
 
@@ -66,17 +83,19 @@ class InscriptionsValidatorTest {
         assertEquals("testingname@gmail.com", data.get(11).getEmail());
         assertEquals("testingname2@gmail.com", data.get(12).getEmail());
         assertEquals("testingname3@gmail.com", data.get(13).getEmail());
-        assertEquals("testingname4@gmail.com", data.get(14).getEmail());
-        InscriptionDTO inscriptionDTO = data.get(15);
+        InscriptionDTO inscriptionDTO = data.get(14);
         assertEquals("testingname5@gmail.com", inscriptionDTO.getEmail());
         assertEquals("Inmaculada Inma Inma", inscriptionDTO.getParent1Name());
-        assertEquals("Other Parent Name", inscriptionDTO.getParent2Name());
-        assertEquals("Altea13 Palotes Sánchez", inscriptionDTO.getAusiasChild1Name());
+        assertEquals("Second3 Parent Name", inscriptionDTO.getParent2Name());
+        assertEquals("Lucas Fernández Pérez", inscriptionDTO.getChild1Name());
+        assertEquals("Altea13 Palotes Sánchez", inscriptionDTO.getChild2Name());
+        assertEquals("María Fernández Pérez", inscriptionDTO.getAusiasChild1Name());
         assertEquals("Other Pérez Surname", inscriptionDTO.getAusiasChild2Name());
+        assertEquals("testingname6@gmail.com", data.get(15).getEmail());
     }
 
     @Test
-    public void extractEmailDataThrowsIOExceptionWhenFileDoesNotExist() {
+    public void extractInscriptionsDataThrowsIOExceptionWhenFileDoesNotExist() {
         File file = new File("A non existing file");
 
         assertThrows(IOException.class, () -> this.inscriptionsValidator.extractInscriptionsData(file));
@@ -109,27 +128,31 @@ class InscriptionsValidatorTest {
     }
 
     @Test
-    public void returnRowsWithDoubts() {
+    public void returnRowsWithDoubts() throws IOException {
         List<String> paymentData = buildPaymentData();
-        Map<Integer, String> inscriptionData = buildInscriptionData();
+        Map<Integer, InscriptionDTO> inscriptionData = buildInscriptionData();
 
         Map<Integer, String> result = this.inscriptionsValidator.returnRowsWithDoubts(inscriptionData, paymentData);
 
         assertEquals(4, result.size());
+        assertTrue(result.containsKey(1));
+        assertEquals(result.get(1), "El email de inscripción 'pepitopalotes@gmail.com' está repetido");
         assertTrue(result.containsKey(2));
         assertEquals(result.get(2), "El email de inscripción 'pepitopalotes@gmail.com' está repetido");
-        assertTrue(result.containsKey(3));
-        assertEquals(result.get(3), "El email de inscripción 'pepitopalotes@gmail.com' está repetido");
+        assertTrue(result.containsKey(4));
+        assertEquals(result.get(4), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes35@gmail.com' y el del pago es 'pepitopalotes35@gml.com'");
         assertTrue(result.containsKey(5));
-        assertEquals(result.get(5), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes35@gmail.com' y el del pago es 'pepitopalotes35@gml.com'");
-        assertTrue(result.containsKey(6));
-        assertEquals(result.get(6), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes36@gmail.com' y el del pago es 'pepitopalotes36@hotmail.com'");
+        assertEquals(result.get(5), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes36@gmail.com' y el del pago es 'pepitopalotes36@hotmail.com'");
+        assertTrue(result.containsKey(12));
+        assertEquals(result.get(12), "El nombre del padre/madre 'Parent Name Surname' está repetido");
+        assertTrue(result.containsKey(13));
+        assertEquals(result.get(13), "El nombre del padre/madre 'Parent Name Surname' está repetido");
     }
 
     @Test
-    public void returnPayedRows() {
+    public void returnPayedRows() throws IOException {
         List<String> paymentData = buildPaymentData();
-        Map<Integer, String> inscriptionData = buildInscriptionData();
+        Map<Integer, InscriptionDTO> inscriptionData = buildInscriptionData();
 
         List<Integer> result = this.inscriptionsValidator.returnPayedRows(inscriptionData, paymentData);
 
@@ -189,19 +212,9 @@ class InscriptionsValidatorTest {
         return payementData;
     }
 
-    private Map<Integer, String> buildInscriptionData() {
-        Map<Integer, String> inscriptionData = new HashMap<>();
-        inscriptionData.put(2, "pepitopalotes@gmail.com");
-        inscriptionData.put(3, "pepitopalotes@gmail.com");
-        inscriptionData.put(4, "pepitopalotes34@gmail.com");
-        inscriptionData.put(5, "pepitopalotes35@gmail.com");
-        inscriptionData.put(6, "pepitopalotes36@gmail.com");
-        inscriptionData.put(7, "pepitopalotes37@gmail.com");
-        inscriptionData.put(8, "pepitopalotes38@gmail.com");
-        inscriptionData.put(9, "lafigatatia@gmail.com");
-        inscriptionData.put(10, "lamarequeva@gmail.com");
-        inscriptionData.put(11, "latiatamare@gmail.com");
-        return inscriptionData;
+    private Map<Integer, InscriptionDTO> buildInscriptionData() throws IOException {
+        File file = new File(TEST_RESOURCES_DIRECTORY + "/inscriptions_test.xlsx");
+        return this.inscriptionsValidator.extractInscriptionsData(file);
     }
 
 }

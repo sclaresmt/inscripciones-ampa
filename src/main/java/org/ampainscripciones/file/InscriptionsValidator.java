@@ -26,7 +26,9 @@ public class InscriptionsValidator {
                 inscriptionDTO.setEmail(getStringValueWithCheck(row.getCell(1)));
                 inscriptionDTO.setParent1Name(getStringValueWithCheck(row.getCell(2)));
                 inscriptionDTO.setParent2Name(getStringValueWithCheck(row.getCell(4)));
-                inscriptionDTO.setAusiasChild1Name(getStringValueWithCheck(row.getCell(9)));
+                inscriptionDTO.setChild1Name(getStringValueWithCheck(row.getCell(7)));
+                inscriptionDTO.setChild2Name(getStringValueWithCheck(row.getCell(9)));
+                inscriptionDTO.setAusiasChild1Name(getStringValueWithCheck(row.getCell(12)));
                 inscriptionDTO.setAusiasChild2Name(getStringValueWithCheck(row.getCell(14)));
                 inscriptionDataByRowIndex.put(i, inscriptionDTO);
             }
@@ -55,42 +57,60 @@ public class InscriptionsValidator {
         return paymentDescription;
     }
 
-    public List<Integer> returnPayedRows(Map<Integer, String> inscriptionData, List<String> paymentData) {
+    public List<Integer> returnPayedRows(Map<Integer, InscriptionDTO> inscriptionData, List<String> paymentData) {
         List<Integer> payedRows = new ArrayList<>();
         inscriptionData.entrySet().forEach(entry -> {
-            if (paymentData.stream().anyMatch(data -> data.contains(entry.getValue()))) {
-                payedRows.add(entry.getKey());
-            }
+//            if (paymentData.stream().anyMatch(data -> data.contains(entry.getValue()))) {
+//                payedRows.add(entry.getKey());
+//            }
         });
         return payedRows;
     }
 
-    public Map<Integer, String> returnRowsWithDoubts(Map<Integer, String> inscriptionData, List<String> paymentData) {
+    public Map<Integer, String> returnRowsWithDoubts(Map<Integer, InscriptionDTO> inscriptionData, List<String> paymentData) {
         Map<Integer, String> rowsWithDoubts =  new HashMap<>();
         inscriptionData.forEach((key, value) -> {
             boolean isRepeated = false;
-            for (Map.Entry<Integer, String> entry : inscriptionData.entrySet()) {
-                if (value.equals(entry.getValue()) && !key.equals(entry.getKey())) {
+            for (Map.Entry<Integer, InscriptionDTO> entry : inscriptionData.entrySet()) {
+                if (value.getEmail() != null && value.getEmail().equals(entry.getValue().getEmail()) && !key.equals(entry.getKey())) {
                     rowsWithDoubts.put(entry.getKey(), String.format("El email de inscripción '%s' está repetido",
-                            entry.getValue()));
+                            entry.getValue().getEmail()));
+                    isRepeated = true;
+                    break;
+                }
+                if (isParentNameRepeated(key, value, entry)) {
+                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del padre/madre '%s' está repetido",
+                            entry.getValue().getParent1Name()));
+                    isRepeated = true;
+                    break;
+                }
+                if (isChildNameRepeated(key, value, entry)) {
+                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del/la niño/a '%s' está repetido",
+                            entry.getValue().getChild1Name()));
+                    isRepeated = true;
+                    break;
+                }
+                if (isAusiasChildNameRepeated(key, value, entry)) {
+                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del/la niño/a de Ausiás '%s' está repetido",
+                            entry.getValue().getAusiasChild1Name()));
                     isRepeated = true;
                     break;
                 }
             }
             if (!isRepeated) {
                 for (String paymentConcept : paymentData) {
-                    String conceptEmail = paymentConcept;
+                    String concept = paymentConcept;
                     if (paymentConcept.contains("-")) {
-                        conceptEmail =StringUtils.substringAfterLast(paymentConcept, "-");
+                        concept =StringUtils.substringAfterLast(paymentConcept, "-");
                     }
-                    String emailWithoutDominion = conceptEmail;
-                    if (conceptEmail.contains("@")) {
-                        emailWithoutDominion = StringUtils.substringBeforeLast(conceptEmail, "@");
+                    String emailWithoutDominion = concept;
+                    if (concept.contains("@")) {
+                        emailWithoutDominion = StringUtils.substringBeforeLast(concept, "@");
                     }
-                    if (StringUtils.isNotBlank(emailWithoutDominion) && StringUtils.substringBefore(value, "@")
-                            .equals(emailWithoutDominion) && !value.equals(conceptEmail)) {
+                    if (StringUtils.isNotBlank(emailWithoutDominion) && StringUtils.substringBefore(value.getEmail(), "@")
+                            .equals(emailWithoutDominion) && !value.getEmail().equals(concept)) {
                         rowsWithDoubts.put(key, String.format("No hay coincidencia exacta en el email: el de " +
-                                "inscripción es '%s' y el del pago es '%s'", value, conceptEmail));
+                                "inscripción es '%s' y el del pago es '%s'", value.getEmail(), concept));
                         break;
                     }
                 }
@@ -106,8 +126,7 @@ public class InscriptionsValidator {
         }
         Files.copy(this.getInscriptionFile().toPath(), resultFile.toPath());
         final File paymentsFile = this.getPaymentsFile();
-//        final Map<Integer, String> inscriptionData = this.extractInscriptionsData(resultFile);
-        final Map<Integer, String> inscriptionData = new HashMap<>();
+        final Map<Integer, InscriptionDTO> inscriptionData = this.extractInscriptionsData(resultFile);
         final List<String> paymentsData = this.extractPaymentsData(paymentsFile);
         final Map<Integer, String> rowsWithDoubts = this.returnRowsWithDoubts(inscriptionData, paymentsData);
         final List<Integer> payedRows = this.returnPayedRows(inscriptionData, paymentsData).stream()
@@ -196,5 +215,26 @@ public class InscriptionsValidator {
             return cell.getStringCellValue();
         }
         return null;
+    }
+
+    private boolean isAusiasChildNameRepeated(Integer key, InscriptionDTO value, Map.Entry<Integer, InscriptionDTO> entry) {
+        return ((value.getAusiasChild1Name() != null && value.getAusiasChild1Name().equals(entry.getValue().getAusiasChild1Name()))
+                || (value.getAusiasChild2Name() != null && value.getAusiasChild2Name().equals(entry.getValue().getAusiasChild2Name()))
+                || (value.getAusiasChild1Name() != null && value.getAusiasChild2Name() != null && value.getAusiasChild1Name().equals(entry.getValue().getAusiasChild2Name())))
+                && !key.equals(entry.getKey());
+    }
+
+    private boolean isChildNameRepeated(Integer key, InscriptionDTO value, Map.Entry<Integer, InscriptionDTO> entry) {
+        return ((value.getChild1Name() != null && value.getChild1Name().equals(entry.getValue().getChild1Name()))
+                || (value.getChild2Name() != null && value.getChild2Name().equals(entry.getValue().getChild2Name()))
+                || (value.getChild1Name() != null && value.getChild2Name() != null && value.getChild1Name().equals(entry.getValue().getChild2Name())))
+                && !key.equals(entry.getKey());
+    }
+
+    private boolean isParentNameRepeated(Integer key, InscriptionDTO value, Map.Entry<Integer, InscriptionDTO> entry) {
+        return ((value.getParent1Name() != null && value.getParent1Name().equals(entry.getValue().getParent1Name()))
+                || (value.getParent2Name() != null && value.getParent2Name().equals(entry.getValue().getParent2Name()))
+                || (value.getParent1Name() != null && value.getParent2Name() != null && value.getParent1Name().equals(entry.getValue().getParent2Name())))
+                && !key.equals(entry.getKey());
     }
 }
