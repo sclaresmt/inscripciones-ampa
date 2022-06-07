@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -69,53 +70,86 @@ public class InscriptionsValidator {
 
     public Map<Integer, String> returnRowsWithDoubts(Map<Integer, InscriptionDTO> inscriptionData, List<String> paymentData) {
         Map<Integer, String> rowsWithDoubts =  new HashMap<>();
-        inscriptionData.forEach((key, value) -> {
+        for (Map.Entry<Integer, InscriptionDTO> inscription : inscriptionData.entrySet()) {
+            final Integer key = inscription.getKey();
+            final InscriptionDTO value = inscription.getValue();
             boolean isRepeated = false;
             for (Map.Entry<Integer, InscriptionDTO> entry : inscriptionData.entrySet()) {
-                if (value.getEmail() != null && value.getEmail().equals(entry.getValue().getEmail()) && !key.equals(entry.getKey())) {
+
+                if (areValuesRepeated(key, value.getEmail(), entry.getKey(), entry.getValue().getEmail(), null)) {
                     rowsWithDoubts.put(entry.getKey(), String.format("El email de inscripción '%s' está repetido",
                             entry.getValue().getEmail()));
                     isRepeated = true;
                     break;
                 }
-                if (isParentNameRepeated(key, value, entry)) {
-                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del padre/madre '%s' está repetido",
+
+                if (areValuesRepeated(key, value.getParent1Name(), entry.getKey(), entry.getValue().getParent1Name(),
+                        entry.getValue().getParent2Name())) {
+                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del padre/madre 1 '%s' está repetido",
                             entry.getValue().getParent1Name()));
                     isRepeated = true;
                     break;
                 }
-                if (isChildNameRepeated(key, value, entry)) {
-                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del/la niño/a '%s' está repetido",
+
+                if (areValuesRepeated(key, value.getParent2Name(), entry.getKey(), entry.getValue().getParent2Name(), null)) {
+                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del padre/madre 2 '%s' está repetido",
+                            entry.getValue().getParent2Name()));
+                    isRepeated = true;
+                    break;
+                }
+
+                if (areValuesRepeated(key, value.getChild1Name(), entry.getKey(), entry.getValue().getChild1Name(),
+                        entry.getValue().getChild2Name())) {
+                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del/la niño/a 1 '%s' está repetido",
                             entry.getValue().getChild1Name()));
                     isRepeated = true;
                     break;
                 }
-                if (isAusiasChildNameRepeated(key, value, entry)) {
-                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del/la niño/a de Ausiás '%s' está repetido",
+
+                if (areValuesRepeated(key, value.getChild2Name(), entry.getKey(), entry.getValue().getChild2Name(), null)) {
+                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del/la niño/a 2 '%s' está repetido",
+                            entry.getValue().getChild2Name()));
+                    isRepeated = true;
+                    break;
+                }
+
+                if (areValuesRepeated(key, value.getAusiasChild1Name(), entry.getKey(), entry.getValue().getAusiasChild1Name(),
+                        entry.getValue().getAusiasChild2Name())) {
+                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del/la niño/a de Ausiás 1 '%s' está repetido",
                             entry.getValue().getAusiasChild1Name()));
                     isRepeated = true;
                     break;
                 }
+
+                if (areValuesRepeated(key, value.getAusiasChild2Name(), entry.getKey(), entry.getValue().getAusiasChild2Name(), null)) {
+                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del/la niño/a de Ausiás 2 '%s' está repetido",
+                            entry.getValue().getAusiasChild2Name()));
+                    isRepeated = true;
+                    break;
+                }
+
             }
-            if (!isRepeated) {
-                for (String paymentConcept : paymentData) {
-                    String concept = paymentConcept;
-                    if (paymentConcept.contains("-")) {
-                        concept =StringUtils.substringAfterLast(paymentConcept, "-");
-                    }
-                    String emailWithoutDominion = concept;
-                    if (concept.contains("@")) {
-                        emailWithoutDominion = StringUtils.substringBeforeLast(concept, "@");
-                    }
-                    if (StringUtils.isNotBlank(emailWithoutDominion) && StringUtils.substringBefore(value.getEmail(), "@")
-                            .equals(emailWithoutDominion) && !value.getEmail().equals(concept)) {
-                        rowsWithDoubts.put(key, String.format("No hay coincidencia exacta en el email: el de " +
-                                "inscripción es '%s' y el del pago es '%s'", value.getEmail(), concept));
-                        break;
-                    }
+
+            if (isRepeated) {
+                continue;
+            }
+            for (String paymentConcept : paymentData) {
+                String concept = paymentConcept;
+                if (paymentConcept.contains("-")) {
+                    concept =StringUtils.substringAfterLast(paymentConcept, "-");
+                }
+                String emailWithoutDominion = concept;
+                if (concept.contains("@")) {
+                    emailWithoutDominion = StringUtils.substringBeforeLast(concept, "@");
+                }
+                if (StringUtils.isNotBlank(emailWithoutDominion) && StringUtils.substringBefore(value.getEmail(), "@")
+                        .equals(emailWithoutDominion) && !value.getEmail().equals(concept)) {
+                    rowsWithDoubts.put(key, String.format("No hay coincidencia exacta en el email: el de " +
+                            "inscripción es '%s' y el del pago es '%s'", value.getEmail(), concept));
+                    break;
                 }
             }
-        });
+        }
         return rowsWithDoubts;
     }
 
@@ -236,5 +270,11 @@ public class InscriptionsValidator {
                 || (value.getParent2Name() != null && value.getParent2Name().equals(entry.getValue().getParent2Name()))
                 || (value.getParent1Name() != null && value.getParent2Name() != null && value.getParent1Name().equals(entry.getValue().getParent2Name())))
                 && !key.equals(entry.getKey());
+    }
+
+    private boolean areValuesRepeated(final Integer currentKey, final String currentValue, final Integer keyToCheck,
+                                          final String valueToCheck, final String otherValueToCheck) {
+        return currentValue != null && !currentKey.equals(keyToCheck)
+                && (currentValue.equals(valueToCheck) || currentValue.equals(otherValueToCheck));
     }
 }

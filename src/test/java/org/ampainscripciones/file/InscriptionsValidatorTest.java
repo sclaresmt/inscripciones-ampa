@@ -129,20 +129,21 @@ class InscriptionsValidatorTest {
 
     @Test
     public void returnRowsWithDoubts() throws IOException {
-        List<String> paymentData = buildPaymentData();
-        Map<Integer, InscriptionDTO> inscriptionData = buildInscriptionData();
+        final List<String> paymentData = buildPaymentData();
+        final File file = new File(TEST_RESOURCES_DIRECTORY + "/validate_doubts_test.xlsx");
+        final Map<Integer, InscriptionDTO> inscriptionData = this.inscriptionsValidator.extractInscriptionsData(file);
 
         Map<Integer, String> result = this.inscriptionsValidator.returnRowsWithDoubts(inscriptionData, paymentData);
 
-        assertEquals(4, result.size());
-        assertTrue(result.containsKey(1));
-        assertEquals(result.get(1), "El email de inscripción 'pepitopalotes@gmail.com' está repetido");
+        assertEquals(6, result.size());
         assertTrue(result.containsKey(2));
         assertEquals(result.get(2), "El email de inscripción 'pepitopalotes@gmail.com' está repetido");
-        assertTrue(result.containsKey(4));
-        assertEquals(result.get(4), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes35@gmail.com' y el del pago es 'pepitopalotes35@gml.com'");
+        assertTrue(result.containsKey(3));
+        assertEquals(result.get(3), "El email de inscripción 'pepitopalotes@gmail.com' está repetido");
         assertTrue(result.containsKey(5));
-        assertEquals(result.get(5), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes36@gmail.com' y el del pago es 'pepitopalotes36@hotmail.com'");
+        assertEquals(result.get(5), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes35@gmail.com' y el del pago es 'pepitopalotes35@gml.com'");
+        assertTrue(result.containsKey(6));
+        assertEquals(result.get(6), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes36@gmail.com' y el del pago es 'pepitopalotes36@hotmail.com'");
         assertTrue(result.containsKey(12));
         assertEquals(result.get(12), "El nombre del padre/madre 'Parent Name Surname' está repetido");
         assertTrue(result.containsKey(13));
