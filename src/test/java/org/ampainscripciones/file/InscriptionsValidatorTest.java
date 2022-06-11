@@ -135,19 +135,29 @@ class InscriptionsValidatorTest {
 
         Map<Integer, String> result = this.inscriptionsValidator.returnRowsWithDoubts(inscriptionData, paymentData);
 
-        assertEquals(6, result.size());
-        assertTrue(result.containsKey(2));
-        assertEquals(result.get(2), "El email de inscripción 'pepitopalotes@gmail.com' está repetido");
-        assertTrue(result.containsKey(3));
-        assertEquals(result.get(3), "El email de inscripción 'pepitopalotes@gmail.com' está repetido");
-        assertTrue(result.containsKey(5));
-        assertEquals(result.get(5), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes35@gmail.com' y el del pago es 'pepitopalotes35@gml.com'");
-        assertTrue(result.containsKey(6));
-        assertEquals(result.get(6), "No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes36@gmail.com' y el del pago es 'pepitopalotes36@hotmail.com'");
-        assertTrue(result.containsKey(12));
-        assertEquals(result.get(12), "El nombre del padre/madre 'Parent Name Surname' está repetido");
-        assertTrue(result.containsKey(13));
-        assertEquals(result.get(13), "El nombre del padre/madre 'Parent Name Surname' está repetido");
+        assertEquals(21, result.size());
+        assertEquals("El email de inscripción 'pepitopalotes@gmail.com' está repetido", result.get(1));
+        assertEquals("El email de inscripción 'pepitopalotes@gmail.com' está repetido", result.get(2));
+        assertEquals("El nombre del padre/madre 1 'Pepito2 Palotes Pérez' está repetido", result.get(3));
+        assertEquals("El nombre del padre/madre 1 'Pepito2 Palotes Pérez' está repetido", result.get(4));
+        assertEquals("El nombre del padre/madre 1 'Pepito3 Palotes Pérez' está repetido", result.get(5));
+        assertEquals("El nombre del padre/madre 2 'Pepito3 Palotes Pérez' está repetido", result.get(6));
+        assertEquals("El nombre del padre/madre 2 'Pepito6 Palotes Pérez' está repetido", result.get(7));
+        assertEquals("El nombre del padre/madre 2 'Pepito6 Palotes Pérez' está repetido", result.get(8));
+        assertEquals("El nombre del/la niño/a 2 'Altea8 Palotes Sánchez' está repetido", result.get(9));
+        assertEquals("El nombre del/la niño/a 2 'Altea8 Palotes Sánchez' está repetido", result.get(10));
+        assertEquals("El nombre del/la niño/a 2 'Altea9 Palotes Sánchez' está repetido", result.get(11));
+        assertEquals("El nombre del/la niño/a 1 'Altea9 Palotes Sánchez' está repetido", result.get(12));
+        assertEquals("El nombre del/la niño/a 1 'Altea13 Palotes Sánchez' está repetido", result.get(13));
+        assertEquals("El nombre del/la niño/a 1 'Altea13 Palotes Sánchez' está repetido", result.get(14));
+        assertEquals("El nombre del/la niño/a de Ausiás 2 'Pau Palotes Sánchez' está repetido", result.get(15));
+        assertEquals("El nombre del/la niño/a de Ausiás 2 'Pau Palotes Sánchez' está repetido", result.get(16));
+        assertEquals("El nombre del/la niño/a de Ausiás 1 'Pau2 Palotes Sánchez' está repetido", result.get(17));
+        assertEquals("El nombre del/la niño/a de Ausiás 2 'Pau2 Palotes Sánchez' está repetido", result.get(18));
+        assertEquals("El nombre del/la niño/a de Ausiás 1 'Pau5 Palotes Sánchez' está repetido", result.get(19));
+        assertEquals("El nombre del/la niño/a de Ausiás 1 'Pau5 Palotes Sánchez' está repetido", result.get(20));
+        assertEquals("No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes35@gmail.com' y el del pago es 'pepitopalotes35@gml.com'",
+                result.get(21));
     }
 
     @Test

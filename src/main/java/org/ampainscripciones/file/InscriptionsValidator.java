@@ -77,53 +77,56 @@ public class InscriptionsValidator {
             for (Map.Entry<Integer, InscriptionDTO> entry : inscriptionData.entrySet()) {
 
                 if (areValuesRepeated(key, value.getEmail(), entry.getKey(), entry.getValue().getEmail(), null)) {
-                    rowsWithDoubts.put(entry.getKey(), String.format("El email de inscripción '%s' está repetido",
-                            entry.getValue().getEmail()));
+                    rowsWithDoubts.put(key, String.format("El email de inscripción '%s' está repetido",
+                            value.getEmail()));
                     isRepeated = true;
                     break;
                 }
 
                 if (areValuesRepeated(key, value.getParent1Name(), entry.getKey(), entry.getValue().getParent1Name(),
                         entry.getValue().getParent2Name())) {
-                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del padre/madre 1 '%s' está repetido",
-                            entry.getValue().getParent1Name()));
+                    rowsWithDoubts.put(key, String.format("El nombre del padre/madre 1 '%s' está repetido",
+                            value.getParent1Name()));
                     isRepeated = true;
                     break;
                 }
 
-                if (areValuesRepeated(key, value.getParent2Name(), entry.getKey(), entry.getValue().getParent2Name(), null)) {
-                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del padre/madre 2 '%s' está repetido",
-                            entry.getValue().getParent2Name()));
+                if (areValuesRepeated(key, value.getParent2Name(), entry.getKey(), entry.getValue().getParent2Name(),
+                        entry.getValue().getParent1Name())) {
+                    rowsWithDoubts.put(key, String.format("El nombre del padre/madre 2 '%s' está repetido",
+                            value.getParent2Name()));
                     isRepeated = true;
                     break;
                 }
 
                 if (areValuesRepeated(key, value.getChild1Name(), entry.getKey(), entry.getValue().getChild1Name(),
                         entry.getValue().getChild2Name())) {
-                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del/la niño/a 1 '%s' está repetido",
-                            entry.getValue().getChild1Name()));
+                    rowsWithDoubts.put(key, String.format("El nombre del/la niño/a 1 '%s' está repetido",
+                            value.getChild1Name()));
                     isRepeated = true;
                     break;
                 }
 
-                if (areValuesRepeated(key, value.getChild2Name(), entry.getKey(), entry.getValue().getChild2Name(), null)) {
-                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del/la niño/a 2 '%s' está repetido",
-                            entry.getValue().getChild2Name()));
+                if (areValuesRepeated(key, value.getChild2Name(), entry.getKey(), entry.getValue().getChild2Name(),
+                        entry.getValue().getChild1Name())) {
+                    rowsWithDoubts.put(key, String.format("El nombre del/la niño/a 2 '%s' está repetido",
+                            value.getChild2Name()));
                     isRepeated = true;
                     break;
                 }
 
                 if (areValuesRepeated(key, value.getAusiasChild1Name(), entry.getKey(), entry.getValue().getAusiasChild1Name(),
                         entry.getValue().getAusiasChild2Name())) {
-                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del/la niño/a de Ausiás 1 '%s' está repetido",
-                            entry.getValue().getAusiasChild1Name()));
+                    rowsWithDoubts.put(key, String.format("El nombre del/la niño/a de Ausiás 1 '%s' está repetido",
+                            value.getAusiasChild1Name()));
                     isRepeated = true;
                     break;
                 }
 
-                if (areValuesRepeated(key, value.getAusiasChild2Name(), entry.getKey(), entry.getValue().getAusiasChild2Name(), null)) {
-                    rowsWithDoubts.put(entry.getKey(), String.format("El nombre del/la niño/a de Ausiás 2 '%s' está repetido",
-                            entry.getValue().getAusiasChild2Name()));
+                if (areValuesRepeated(key, value.getAusiasChild2Name(), entry.getKey(), entry.getValue().getAusiasChild2Name(),
+                        entry.getValue().getAusiasChild1Name())) {
+                    rowsWithDoubts.put(key, String.format("El nombre del/la niño/a de Ausiás 2 '%s' está repetido",
+                            value.getAusiasChild2Name()));
                     isRepeated = true;
                     break;
                 }
