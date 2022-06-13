@@ -80,18 +80,14 @@ class InscriptionsValidatorTest {
         assertEquals("lafigatatia@gmail.com", data.get(8).getEmail());
         assertEquals("lamarequeva@gmail.com", data.get(9).getEmail());
         assertEquals("latiatamare@gmail.com", data.get(10).getEmail());
-        assertEquals("testingname@gmail.com", data.get(11).getEmail());
-        assertEquals("testingname2@gmail.com", data.get(12).getEmail());
-        assertEquals("testingname3@gmail.com", data.get(13).getEmail());
-        InscriptionDTO inscriptionDTO = data.get(14);
-        assertEquals("testingname5@gmail.com", inscriptionDTO.getEmail());
-        assertEquals("Inmaculada Inma Inma", inscriptionDTO.getParent1Name());
+        InscriptionDTO inscriptionDTO = data.get(10);
+        assertEquals("latiatamare@gmail.com", inscriptionDTO.getEmail());
+        assertEquals("Pepito Palotes Pérez", inscriptionDTO.getParent1Name());
         assertEquals("Second3 Parent Name", inscriptionDTO.getParent2Name());
         assertEquals("Lucas Fernández Pérez", inscriptionDTO.getChild1Name());
-        assertEquals("Altea13 Palotes Sánchez", inscriptionDTO.getChild2Name());
+        assertEquals("Ágata Tururú López", inscriptionDTO.getChild2Name());
         assertEquals("María Fernández Pérez", inscriptionDTO.getAusiasChild1Name());
         assertEquals("Other Pérez Surname", inscriptionDTO.getAusiasChild2Name());
-        assertEquals("testingname6@gmail.com", data.get(15).getEmail());
     }
 
     @Test
@@ -107,17 +103,21 @@ class InscriptionsValidatorTest {
 
         List<String> data = this.inscriptionsValidator.extractPaymentsData(file);
 
-        assertEquals(10, data.size());
-        assertEquals("XXXXXXXX-pepitopalotes@gmail.com", data.get(0));
-        assertEquals("XXXXXXXX-PAULA APELLIDO APELLIDO2", data.get(1));
+        assertEquals(14, data.size());
+        assertEquals("pepitopalotes@gmail.com", data.get(0));
+        assertEquals("PAULA APELLIDO APELLIDO2", data.get(1));
         assertEquals("CCCXXXXXXXXXXXXXXXXXXXX", data.get(2));
-        assertEquals("YYYYYYYY-LINA APELLIDO APELLIDO", data.get(3));
-        assertEquals("ZZZZZZZZ-LAURA LAURA LAURA", data.get(4));
-        assertEquals("AAAAAAAA-INMACULADA INMA INMA", data.get(5));
-        assertEquals("XXXXXXXX-pepitopalotes34@gmail.com", data.get(6));
-        assertEquals("XXXXXXXX-pepitopalotes35@gml.com", data.get(7));
-        assertEquals("XXXXXXXX-lamarequeva@gmail.com", data.get(8));
-        assertEquals("XXXXXXXX-pepitopalotes36@hotmail.com", data.get(9));
+        assertEquals("LINA APELLIDO APELLIDO", data.get(3));
+        assertEquals("LAURA LAURA LAURA", data.get(4));
+        assertEquals("INMACULADA INMA INMA", data.get(5));
+        assertEquals("PEPITOPALOTES34@GMAIL.COM", data.get(6));
+        assertEquals("PEPITOPALOTES35@GIL.CO", data.get(7));
+        assertEquals("lamarequeva@gmail.com", data.get(8));
+        assertEquals("PEPITOPALOTES36ARROBAHOTMAIL.COM", data.get(9));
+        assertEquals("RAMON GARCIA PEREZ", data.get(10));
+        assertEquals("PEPITOPALOTES38ARROBAGMAIL.COM", data.get(11));
+        assertEquals("AGATA TURURU", data.get(12));
+        assertEquals("Pepito7", data.get(13));
     }
 
     @Test
@@ -135,7 +135,7 @@ class InscriptionsValidatorTest {
 
         Map<Integer, String> result = this.inscriptionsValidator.returnRowsWithDoubts(inscriptionData, paymentData);
 
-        assertEquals(21, result.size());
+        assertEquals(22, result.size());
         assertEquals("El email de inscripción 'pepitopalotes@gmail.com' está repetido", result.get(1));
         assertEquals("El email de inscripción 'pepitopalotes@gmail.com' está repetido", result.get(2));
         assertEquals("El nombre del padre/madre 1 'Pepito2 Palotes Pérez' está repetido", result.get(3));
@@ -158,6 +158,8 @@ class InscriptionsValidatorTest {
         assertEquals("El nombre del/la niño/a de Ausiás 1 'Pau5 Palotes Sánchez' está repetido", result.get(20));
         assertEquals("No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes35@gmail.com' y el del pago es 'pepitopalotes35@gml.com'",
                 result.get(21));
+        assertEquals("No hay coincidencia exacta en el email: el de inscripción es 'pepitopalotes38@hotmail.com' y el del pago es 'pepitopalotes38@gmail.com'",
+                result.get(23));
     }
 
     @Test
@@ -168,9 +170,9 @@ class InscriptionsValidatorTest {
         List<Integer> result = this.inscriptionsValidator.returnPayedRows(inscriptionData, paymentData);
 
         assertEquals(4, result.size());
-        assertTrue(result.contains(2));
         assertTrue(result.contains(3));
-        assertTrue(result.contains(4));
+        assertTrue(result.contains(7));
+        assertTrue(result.contains(9));
         assertTrue(result.contains(10));
     }
 
@@ -208,19 +210,9 @@ class InscriptionsValidatorTest {
         assertThrows(IOException.class, () -> this.inscriptionsValidator.getPaymentsFile());
     }
 
-    private List<String> buildPaymentData() {
-        List<String> payementData = new ArrayList<>();
-        payementData.add("XXXXXXXX-pepitopalotes@gmail.com");
-        payementData.add("XXXXXXXX-PAULA APELLIDO APELLIDO2");
-        payementData.add("CCCXXXXXXXXXXXXXXXXXXXX");
-        payementData.add("YYYYYYYY-LINA APELLIDO APELLIDO");
-        payementData.add("ZZZZZZZZ-LAURA LAURA LAURA");
-        payementData.add("AAAAAAAA-INMACULADA INMA INMA");
-        payementData.add("XXXXXXXX-pepitopalotes34@gmail.com");
-        payementData.add("pepitopalotes35@gml.com");
-        payementData.add("XXXXXXXX-lamarequeva@gmail.com");
-        payementData.add("XXXXXXXX-pepitopalotes36@hotmail.com");
-        return payementData;
+    private List<String> buildPaymentData() throws IOException {
+        File file = new File(TEST_RESOURCES_DIRECTORY + "/Movimientos_cuenta_0281573.xls");
+        return this.inscriptionsValidator.extractPaymentsData(file);
     }
 
     private Map<Integer, InscriptionDTO> buildInscriptionData() throws IOException {

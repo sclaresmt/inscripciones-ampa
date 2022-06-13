@@ -51,7 +51,9 @@ public class InscriptionsValidator {
                 Row row = sheet.getRow(i);
                 double numericCellValue = row.getCell(4).getNumericCellValue();
                 if (numericCellValue == 15.00D) {
-                    paymentDescription.add(row.getCell(3).getStringCellValue());
+                    String stringCellValue = row.getCell(3).getStringCellValue();
+                    paymentDescription.add(stringCellValue.contains("-") ? StringUtils
+                            .substringAfterLast(stringCellValue, "-") : stringCellValue);
                 }
             }
         }
@@ -60,11 +62,8 @@ public class InscriptionsValidator {
 
     public List<Integer> returnPayedRows(Map<Integer, InscriptionDTO> inscriptionData, List<String> paymentData) {
         List<Integer> payedRows = new ArrayList<>();
-        inscriptionData.entrySet().forEach(entry -> {
-//            if (paymentData.stream().anyMatch(data -> data.contains(entry.getValue()))) {
-//                payedRows.add(entry.getKey());
-//            }
-        });
+        paymentData.forEach(paymentConcept -> inscriptionData.entrySet().stream().anyMatch(entry ->
+            StringUtils.upperCase(entry.getValue().getEmail()).replace("ARROBA", "@").replace("ARROVA", "@").contains(paymentConcept)));
         return payedRows;
     }
 
@@ -136,19 +135,25 @@ public class InscriptionsValidator {
             if (isRepeated) {
                 continue;
             }
-            for (String paymentConcept : paymentData) {
-                String concept = paymentConcept;
-                if (paymentConcept.contains("-")) {
-                    concept =StringUtils.substringAfterLast(paymentConcept, "-");
-                }
-                String emailWithoutDominion = concept;
+            for (String concept : paymentData) {
+                String emailSeparator = "";
                 if (concept.contains("@")) {
-                    emailWithoutDominion = StringUtils.substringBeforeLast(concept, "@");
+                    emailSeparator = "@";
                 }
-                if (StringUtils.isNotBlank(emailWithoutDominion) && StringUtils.substringBefore(value.getEmail(), "@")
-                        .equals(emailWithoutDominion) && !value.getEmail().equals(concept)) {
+                if (concept.contains("ARROBA")) {
+                    emailSeparator = "ARROBA";
+                }
+                if (concept.contains("ARROVA")) {
+                    emailSeparator = "ARROVA";
+                }
+                final String emailWithoutDominion = StringUtils.substringBeforeLast(concept, emailSeparator);
+                final String inscriptionEmail = StringUtils.upperCase(value.getEmail());
+                if (StringUtils.isNotBlank(emailWithoutDominion) &&
+                        StringUtils.substringBefore(inscriptionEmail, "@").equals(emailWithoutDominion)
+                        && !inscriptionEmail.equals(concept.replace(emailSeparator, "@"))) {
                     rowsWithDoubts.put(key, String.format("No hay coincidencia exacta en el email: el de " +
-                            "inscripción es '%s' y el del pago es '%s'", value.getEmail(), concept));
+                            "inscripción es '%s' y el del pago es '%s'", value.getEmail(),
+                            concept.replace(emailSeparator, "@").toLowerCase()));
                     break;
                 }
             }
