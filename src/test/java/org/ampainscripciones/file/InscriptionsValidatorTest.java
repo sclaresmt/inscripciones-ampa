@@ -111,7 +111,7 @@ class InscriptionsValidatorTest {
         assertEquals("LAURA LAURA LAURA", data.get(4));
         assertEquals("INMACULADA INMA INMA", data.get(5));
         assertEquals("PEPITOPALOTES34@GMAIL.COM", data.get(6));
-        assertEquals("PEPITOPALOTES35@GIL.CO", data.get(7));
+        assertEquals("PEPITOPALOTES35@GML.COM", data.get(7));
         assertEquals("lamarequeva@gmail.com", data.get(8));
         assertEquals("PEPITOPALOTES36ARROBAHOTMAIL.COM", data.get(9));
         assertEquals("RAMON GARCIA PEREZ", data.get(10));

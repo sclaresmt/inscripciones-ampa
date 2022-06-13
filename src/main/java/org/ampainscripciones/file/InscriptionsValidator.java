@@ -62,9 +62,19 @@ public class InscriptionsValidator {
 
     public List<Integer> returnPayedRows(Map<Integer, InscriptionDTO> inscriptionData, List<String> paymentData) {
         List<Integer> payedRows = new ArrayList<>();
-        paymentData.forEach(paymentConcept -> inscriptionData.entrySet().stream().anyMatch(entry ->
-            StringUtils.upperCase(entry.getValue().getEmail()).replace("ARROBA", "@").replace("ARROVA", "@").contains(paymentConcept)));
+        paymentData.forEach(paymentConcept -> {
+            inscriptionData.forEach((rowNum, inscriptionDTO) -> {
+                if (emailMatch(paymentConcept, inscriptionDTO)) {
+                    payedRows.add(rowNum);
+                }
+            });
+        });
+                ;
         return payedRows;
+    }
+
+    private boolean emailMatch(String paymentConcept, InscriptionDTO inscriptionDTO) {
+        return paymentConcept.replace("ARROBA", "@").replace("ARROVA", "@").equals(StringUtils.upperCase(inscriptionDTO.getEmail()));
     }
 
     public Map<Integer, String> returnRowsWithDoubts(Map<Integer, InscriptionDTO> inscriptionData, List<String> paymentData) {
