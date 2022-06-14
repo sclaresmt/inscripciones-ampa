@@ -22,7 +22,7 @@ public class InscriptionsValidator {
             final Sheet sheet = wb.getSheetAt(0);
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 final Row row = sheet.getRow(i);
-                if (StringUtils.isBlank(row.getCell(0).getStringCellValue())) {
+                if (StringUtils.isBlank(getStringValueWithCheck(row.getCell(0)))) {
                     break;
                 }
                 final InscriptionDTO inscriptionDTO = new InscriptionDTO();
