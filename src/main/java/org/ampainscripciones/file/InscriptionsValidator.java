@@ -22,11 +22,12 @@ public class InscriptionsValidator {
             final Sheet sheet = wb.getSheetAt(0);
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 final Row row = sheet.getRow(i);
-                if (StringUtils.isBlank(getStringValueWithCheck(row.getCell(0)))) {
+                final InscriptionDTO inscriptionDTO = new InscriptionDTO();
+                String email = getStringValueWithCheck(row.getCell(1));
+                if (StringUtils.isBlank(email)) {
                     break;
                 }
-                final InscriptionDTO inscriptionDTO = new InscriptionDTO();
-                inscriptionDTO.setEmail(getStringValueWithCheck(row.getCell(1)));
+                inscriptionDTO.setEmail(email);
                 inscriptionDTO.setParent1Name(getStringValueWithCheck(row.getCell(2)));
                 inscriptionDTO.setParent2Name(getStringValueWithCheck(row.getCell(4)));
                 inscriptionDTO.setChild1Name(getStringValueWithCheck(row.getCell(7)));
