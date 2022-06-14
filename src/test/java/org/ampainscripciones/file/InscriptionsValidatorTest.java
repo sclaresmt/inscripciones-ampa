@@ -44,22 +44,18 @@ class InscriptionsValidatorTest {
             assertEquals(IndexedColors.PALE_BLUE.getIndex(), sheet.getRow(2).getCell(1).getCellStyle().getFillForegroundColor());
             assertEquals(IndexedColors.PALE_BLUE.getIndex(), sheet.getRow(4).getCell(1).getCellStyle().getFillForegroundColor());
             assertEquals(IndexedColors.PALE_BLUE.getIndex(), sheet.getRow(5).getCell(1).getCellStyle().getFillForegroundColor());
-            assertEquals(IndexedColors.PALE_BLUE.getIndex(), sheet.getRow(11).getCell(1).getCellStyle().getFillForegroundColor());
-            assertEquals(IndexedColors.PALE_BLUE.getIndex(), sheet.getRow(12).getCell(1).getCellStyle().getFillForegroundColor());
 
             // Payed rows
             assertEquals(IndexedColors.LIGHT_GREEN.getIndex(), sheet.getRow(3).getCell(1).getCellStyle().getFillForegroundColor());
             assertEquals(FillPatternType.SOLID_FOREGROUND, sheet.getRow(3).getCell(1).getCellStyle().getFillPattern());
+            assertEquals(IndexedColors.LIGHT_GREEN.getIndex(), sheet.getRow(7).getCell(1).getCellStyle().getFillForegroundColor());
             assertEquals(IndexedColors.LIGHT_GREEN.getIndex(), sheet.getRow(9).getCell(1).getCellStyle().getFillForegroundColor());
-            assertEquals(IndexedColors.LIGHT_GREEN.getIndex(), sheet.getRow(13).getCell(1).getCellStyle().getFillForegroundColor());
-            assertEquals(IndexedColors.LIGHT_GREEN.getIndex(), sheet.getRow(14).getCell(1).getCellStyle().getFillForegroundColor());
+            assertEquals(IndexedColors.LIGHT_GREEN.getIndex(), sheet.getRow(10).getCell(1).getCellStyle().getFillForegroundColor());
 
             // Not payed rows
             assertEquals(IndexedColors.RED1.getIndex(), sheet.getRow(6).getCell(1).getCellStyle().getFillForegroundColor());
             assertEquals(FillPatternType.SOLID_FOREGROUND, sheet.getRow(6).getCell(1).getCellStyle().getFillPattern());
-            assertEquals(IndexedColors.RED1.getIndex(), sheet.getRow(7).getCell(1).getCellStyle().getFillForegroundColor());
             assertEquals(IndexedColors.RED1.getIndex(), sheet.getRow(8).getCell(1).getCellStyle().getFillForegroundColor());
-            assertEquals(IndexedColors.RED1.getIndex(), sheet.getRow(10).getCell(1).getCellStyle().getFillForegroundColor());
         }
     }
 
@@ -69,7 +65,7 @@ class InscriptionsValidatorTest {
 
         Map<Integer, InscriptionDTO> data = this.inscriptionsValidator.extractInscriptionsData(file);
 
-        assertEquals(15, data.size());
+        assertEquals(10, data.size());
         assertEquals("pepitopalotes@gmail.com", data.get(1).getEmail());
         assertEquals("pepitopalotes@gmail.com", data.get(2).getEmail());
         assertEquals("pepitopalotes34@gmail.com", data.get(3).getEmail());
@@ -98,7 +94,7 @@ class InscriptionsValidatorTest {
     }
 
     @Test
-    public void extractPaymentsData() throws IOException, InvalidFormatException {
+    public void extractPaymentsData() throws IOException {
         File file = new File(TEST_RESOURCES_DIRECTORY + "/Movimientos_cuenta_0281573.xls");
 
         List<String> data = this.inscriptionsValidator.extractPaymentsData(file);
@@ -204,10 +200,25 @@ class InscriptionsValidatorTest {
     }
 
     @Test
-    public void getPaymentsFileThrowsIOExceptionWhenFileNotFoundInPath() throws IOException {
+    public void getPaymentsFileThrowsIOExceptionWhenFileNotFoundInPath() {
         doReturn("src/test").when(this.inscriptionsValidator).getSourcesFilesFolderPath();
 
         assertThrows(IOException.class, () -> this.inscriptionsValidator.getPaymentsFile());
+    }
+
+    @Test
+    public void normalizedStringMatchPaymentDoesNotMatchIfTwoWordsAtNameAndOnlyOneAtPayment() {
+        assertFalse(this.inscriptionsValidator.normalizedStringMatchPayment("URSULA", "Úrsula García"));
+    }
+
+    @Test
+    public void normalizedStringMatchPaymentMatchesIfThreeWordsAtNameAndTwoAtPayment() {
+        assertTrue(this.inscriptionsValidator.normalizedStringMatchPayment("URSULA GARCIA", "Úrsula García Paca"));
+    }
+
+    @Test
+    public void normalizedStringMatchPaymentDoesNotMatchIfNotContainsAfterNormalize() {
+        assertFalse(this.inscriptionsValidator.normalizedStringMatchPayment("URSULA GACIA", "Úrsula García Paca"));
     }
 
     private List<String> buildPaymentData() throws IOException {

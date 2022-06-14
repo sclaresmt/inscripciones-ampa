@@ -4,13 +4,12 @@ import org.ampainscripciones.model.InscriptionDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
-
-import javax.swing.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -23,6 +22,9 @@ public class InscriptionsValidator {
             final Sheet sheet = wb.getSheetAt(0);
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 final Row row = sheet.getRow(i);
+                if (StringUtils.isBlank(row.getCell(0).getStringCellValue())) {
+                    break;
+                }
                 final InscriptionDTO inscriptionDTO = new InscriptionDTO();
                 inscriptionDTO.setEmail(getStringValueWithCheck(row.getCell(1)));
                 inscriptionDTO.setParent1Name(getStringValueWithCheck(row.getCell(2)));
@@ -62,19 +64,33 @@ public class InscriptionsValidator {
 
     public List<Integer> returnPayedRows(Map<Integer, InscriptionDTO> inscriptionData, List<String> paymentData) {
         List<Integer> payedRows = new ArrayList<>();
-        paymentData.forEach(paymentConcept -> {
-            inscriptionData.forEach((rowNum, inscriptionDTO) -> {
-                if (emailMatch(paymentConcept, inscriptionDTO)) {
-                    payedRows.add(rowNum);
+        paymentData.forEach(payment -> {
+            for (Map.Entry<Integer, InscriptionDTO> entry : inscriptionData.entrySet()) {
+                if (emailMatch(payment, entry.getValue()) || normalizedStringMatchPayment(payment, entry.getValue().getParent1Name())
+                    || normalizedStringMatchPayment(payment, entry.getValue().getParent2Name())
+                    || normalizedStringMatchPayment(payment, entry.getValue().getChild1Name())
+                    || normalizedStringMatchPayment(payment, entry.getValue().getChild2Name())
+                    || normalizedStringMatchPayment(payment, entry.getValue().getAusiasChild1Name())
+                    || normalizedStringMatchPayment(payment, entry.getValue().getAusiasChild2Name())) {
+                        payedRows.add(entry.getKey());
+                        break;
                 }
-            });
+            }
         });
-                ;
         return payedRows;
     }
 
+    protected boolean normalizedStringMatchPayment(final String paymentConcept, final String inscriptionName) {
+        return inscriptionName != null
+                && Normalizer.normalize(inscriptionName, Normalizer.Form.NFD)
+                .replaceAll("[^\\p{ASCII}]", "").toUpperCase().contains(paymentConcept)
+                && paymentConcept.split(" ").length >= inscriptionName.split(" ").length - 1
+                && inscriptionName.split(" ").length >= 2 && paymentConcept.split(" ").length >=2;
+    }
+
     private boolean emailMatch(String paymentConcept, InscriptionDTO inscriptionDTO) {
-        return paymentConcept.replace("ARROBA", "@").replace("ARROVA", "@").equals(StringUtils.upperCase(inscriptionDTO.getEmail()));
+        return paymentConcept.replace("ARROBA", "@").replace("ARROVA", "@")
+                .equals(StringUtils.upperCase(inscriptionDTO.getEmail()));
     }
 
     public Map<Integer, String> returnRowsWithDoubts(Map<Integer, InscriptionDTO> inscriptionData, List<String> paymentData) {
@@ -145,30 +161,34 @@ public class InscriptionsValidator {
             if (isRepeated) {
                 continue;
             }
-            for (String concept : paymentData) {
-                String emailSeparator = "";
-                if (concept.contains("@")) {
-                    emailSeparator = "@";
-                }
-                if (concept.contains("ARROBA")) {
-                    emailSeparator = "ARROBA";
-                }
-                if (concept.contains("ARROVA")) {
-                    emailSeparator = "ARROVA";
-                }
-                final String emailWithoutDominion = StringUtils.substringBeforeLast(concept, emailSeparator);
-                final String inscriptionEmail = StringUtils.upperCase(value.getEmail());
-                if (StringUtils.isNotBlank(emailWithoutDominion) &&
-                        StringUtils.substringBefore(inscriptionEmail, "@").equals(emailWithoutDominion)
-                        && !inscriptionEmail.equals(concept.replace(emailSeparator, "@"))) {
-                    rowsWithDoubts.put(key, String.format("No hay coincidencia exacta en el email: el de " +
-                            "inscripción es '%s' y el del pago es '%s'", value.getEmail(),
-                            concept.replace(emailSeparator, "@").toLowerCase()));
-                    break;
-                }
-            }
+            checkDoubtInEmail(paymentData, rowsWithDoubts, key, value);
         }
         return rowsWithDoubts;
+    }
+
+    private void checkDoubtInEmail(List<String> paymentData, Map<Integer, String> rowsWithDoubts, Integer key, InscriptionDTO value) {
+        for (String concept : paymentData) {
+            String emailSeparator = "";
+            if (concept.contains("@")) {
+                emailSeparator = "@";
+            }
+            if (concept.contains("ARROBA")) {
+                emailSeparator = "ARROBA";
+            }
+            if (concept.contains("ARROVA")) {
+                emailSeparator = "ARROVA";
+            }
+            final String emailWithoutDominion = StringUtils.substringBeforeLast(concept, emailSeparator);
+            final String inscriptionEmail = StringUtils.upperCase(value.getEmail());
+            if (StringUtils.isNotBlank(emailWithoutDominion) &&
+                    StringUtils.substringBefore(inscriptionEmail, "@").equals(emailWithoutDominion)
+                    && !inscriptionEmail.equals(concept.replace(emailSeparator, "@"))) {
+                rowsWithDoubts.put(key, String.format("No hay coincidencia exacta en el email: el de " +
+                        "inscripción es '%s' y el del pago es '%s'", value.getEmail(),
+                        concept.replace(emailSeparator, "@").toLowerCase()));
+                break;
+            }
+        }
     }
 
     public File validateAndCreateValidatedFile() throws IOException {
@@ -267,27 +287,6 @@ public class InscriptionsValidator {
             return cell.getStringCellValue();
         }
         return null;
-    }
-
-    private boolean isAusiasChildNameRepeated(Integer key, InscriptionDTO value, Map.Entry<Integer, InscriptionDTO> entry) {
-        return ((value.getAusiasChild1Name() != null && value.getAusiasChild1Name().equals(entry.getValue().getAusiasChild1Name()))
-                || (value.getAusiasChild2Name() != null && value.getAusiasChild2Name().equals(entry.getValue().getAusiasChild2Name()))
-                || (value.getAusiasChild1Name() != null && value.getAusiasChild2Name() != null && value.getAusiasChild1Name().equals(entry.getValue().getAusiasChild2Name())))
-                && !key.equals(entry.getKey());
-    }
-
-    private boolean isChildNameRepeated(Integer key, InscriptionDTO value, Map.Entry<Integer, InscriptionDTO> entry) {
-        return ((value.getChild1Name() != null && value.getChild1Name().equals(entry.getValue().getChild1Name()))
-                || (value.getChild2Name() != null && value.getChild2Name().equals(entry.getValue().getChild2Name()))
-                || (value.getChild1Name() != null && value.getChild2Name() != null && value.getChild1Name().equals(entry.getValue().getChild2Name())))
-                && !key.equals(entry.getKey());
-    }
-
-    private boolean isParentNameRepeated(Integer key, InscriptionDTO value, Map.Entry<Integer, InscriptionDTO> entry) {
-        return ((value.getParent1Name() != null && value.getParent1Name().equals(entry.getValue().getParent1Name()))
-                || (value.getParent2Name() != null && value.getParent2Name().equals(entry.getValue().getParent2Name()))
-                || (value.getParent1Name() != null && value.getParent2Name() != null && value.getParent1Name().equals(entry.getValue().getParent2Name())))
-                && !key.equals(entry.getKey());
     }
 
     private boolean areValuesRepeated(final Integer currentKey, final String currentValue, final Integer keyToCheck,
